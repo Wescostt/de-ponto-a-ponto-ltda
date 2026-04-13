@@ -3,7 +3,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X } from "lucide-react";
 
 const navLinks = [
-  { label: "Serviços", href: "#servicos" },
+  { label: "Soluções", href: "#solucoes" },
+  { label: "Diferenciais", href: "#diferenciais" },
   { label: "Empresa", href: "#empresa" },
   { label: "FAQ", href: "#faq" },
   { label: "Contato", href: "#contato" },
@@ -20,17 +21,12 @@ const Navbar = () => {
       className="fixed top-0 left-0 right-0 z-50 glass-strong"
     >
       <div className="container mx-auto flex items-center justify-between py-4 px-6">
-        <a href="#" className="flex items-center gap-3">
-          <div className="h-8 w-8 rounded-md bg-primary/20 border border-primary/40 flex items-center justify-center">
-            <span className="text-primary font-bold text-sm">DP</span>
-          </div>
-          <div>
-            <span className="font-semibold text-foreground text-sm tracking-wide">De Ponto a Ponto</span>
-            <span className="block text-[10px] text-muted-foreground tracking-widest uppercase">Desde 1993</span>
-          </div>
+        <a href="#" className="flex flex-col">
+          <span className="font-bold text-foreground text-sm tracking-wide">De Ponto a Ponto LTDA</span>
+          <span className="text-[10px] text-muted-foreground tracking-wide">Tecnologia, auditoria e conformidade em jornada</span>
         </a>
 
-        <div className="hidden md:flex items-center gap-8">
+        <div className="hidden lg:flex items-center gap-8">
           {navLinks.map((link) => (
             <a
               key={link.href}
@@ -42,9 +38,16 @@ const Navbar = () => {
           ))}
         </div>
 
+        <a
+          href="#contato"
+          className="hidden lg:inline-flex px-5 py-2 rounded-full bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 transition-colors"
+        >
+          Falar com especialista
+        </a>
+
         <button
           onClick={() => setOpen(!open)}
-          className="md:hidden text-foreground"
+          className="lg:hidden text-foreground"
           aria-label="Menu"
         >
           {open ? <X size={24} /> : <Menu size={24} />}
@@ -57,7 +60,7 @@ const Navbar = () => {
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            className="md:hidden glass-strong overflow-hidden"
+            className="lg:hidden glass-strong overflow-hidden"
           >
             <div className="flex flex-col gap-4 px-6 py-6">
               {navLinks.map((link) => (
@@ -70,6 +73,13 @@ const Navbar = () => {
                   {link.label}
                 </a>
               ))}
+              <a
+                href="#contato"
+                onClick={() => setOpen(false)}
+                className="inline-flex justify-center px-5 py-2 rounded-full bg-primary text-primary-foreground text-sm font-semibold"
+              >
+                Falar com especialista
+              </a>
             </div>
           </motion.div>
         )}
