@@ -1,4 +1,5 @@
-import { Mail, Instagram, Phone } from "lucide-react";
+import { Mail, Phone } from "lucide-react";
+import { SiInstagram } from "@icons-pack/react-simple-icons";
 
 const FooterSection = () => {
   return (
