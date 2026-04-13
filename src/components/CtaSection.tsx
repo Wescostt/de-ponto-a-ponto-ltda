@@ -13,17 +13,17 @@ const CtaSection = () => {
             Pronto para evoluir sua operação?
           </h2>
           <p className="text-muted-foreground text-sm md:text-base leading-relaxed mb-3">
-            Seu ponto precisa apenas registrar horários ou realmente proteger a sua operação?
+            Uma gestão de ponto forte começa com tecnologia,
+            acompanhamento e confiança.
           </p>
           <p className="text-muted-foreground/70 text-xs md:text-sm max-w-xl mx-auto mb-10">
-            Fale com a De Ponto a Ponto LTDA e descubra como unir equipamento, auditoria e suporte
-            em uma estrutura mais segura, moderna e eficiente.
+            Fale com a De Ponto a Ponto LTDA para estruturar uma operação mais moderna, segura e profissional para sua empresa.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
             <a
               href="mailto:DEPONTOAPONTOCOMERCIAL@GMAIL.COM"
-              className="px-7 py-3.5 rounded-full bg-primary text-primary-foreground font-semibold text-sm hover:bg-primary/90 transition-all glow-cyan"
+              className="px-7 py-3.5 rounded-full bg-primary text-primary-foreground font-semibold text-sm hover:bg-primary/90 transition-all glow-navy"
             >
               Solicitar proposta
             </a>

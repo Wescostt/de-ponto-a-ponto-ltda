@@ -1,10 +1,10 @@
 import { motion } from "framer-motion";
 
 const items = [
-  "Estrutura orientada para empresas que exigem rastreabilidade e precisão.",
-  "Implantação, equipamentos, acompanhamento e suporte em um só parceiro.",
-  "Visão técnica para fechamento sem surpresas e sem improviso.",
-  "Solução escalável para operações com uma ou múltiplas unidades.",
+  "Solução pensada para empresas que precisam de mais rastreabilidade e menos improviso.",
+  "Atendimento próximo, técnico e orientado à rotina de RH e DP.",
+  "Implantação prática com treinamento e acompanhamento de uso.",
+  "Visual moderno, operação confiável e relacionamento humano.",
 ];
 
 const TrustStrip = () => {
