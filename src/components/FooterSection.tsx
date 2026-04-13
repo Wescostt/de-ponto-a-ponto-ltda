@@ -31,7 +31,7 @@ const FooterSection = () => {
               rel="noopener noreferrer"
               className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors"
             >
-              <Instagram size={16} />
+              <AtSign size={16} />
               @DEPONTO
             </a>
             <a
