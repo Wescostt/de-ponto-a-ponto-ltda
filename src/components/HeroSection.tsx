@@ -98,8 +98,8 @@ const HeroSection = () => {
                   <p className="text-foreground font-semibold text-sm">Painel Operacional</p>
                   <p className="text-muted-foreground text-xs">Conformidade de Jornada</p>
                 </div>
-                <span className="flex items-center gap-1.5 text-xs text-emerald-400 bg-emerald-400/10 px-3 py-1 rounded-full border border-emerald-400/20">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse-glow" />
+                <span className="flex items-center gap-1.5 text-xs text-primary bg-primary/10 px-3 py-1 rounded-full border border-primary/20">
+                  <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse-glow" />
                   Status ativo
                 </span>
               </div>
