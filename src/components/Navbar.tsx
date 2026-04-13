@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X } from "lucide-react";
+import logo from "@/assets/logo.png";
 
 const navLinks = [
   { label: "Soluções", href: "#solucoes" },
-  { label: "Diferenciais", href: "#diferenciais" },
+  { label: "Experiência real", href: "#experiencia" },
   { label: "Empresa", href: "#empresa" },
   { label: "FAQ", href: "#faq" },
   { label: "Contato", href: "#contato" },
@@ -20,10 +21,13 @@ const Navbar = () => {
       transition={{ duration: 0.6 }}
       className="fixed top-0 left-0 right-0 z-50 glass-strong"
     >
-      <div className="container mx-auto flex items-center justify-between py-4 px-6">
-        <a href="#" className="flex flex-col">
-          <span className="font-bold text-foreground text-sm tracking-wide">De Ponto a Ponto LTDA</span>
-          <span className="text-[10px] text-muted-foreground tracking-wide">Tecnologia, auditoria e conformidade em jornada</span>
+      <div className="container mx-auto flex items-center justify-between py-3 px-6">
+        <a href="#" className="flex items-center gap-3">
+          <img src={logo} alt="De Ponto a Ponto" className="w-10 h-10 rounded-full" />
+          <div className="flex flex-col">
+            <span className="font-bold text-foreground text-sm tracking-wide">De Ponto a Ponto LTDA</span>
+            <span className="text-[10px] text-muted-foreground tracking-wide">Tecnologia, auditoria e gestão segura da jornada</span>
+          </div>
         </a>
 
         <div className="hidden lg:flex items-center gap-8">

@@ -8,20 +8,20 @@ import {
 
 const faqs = [
   {
-    q: "A auditoria mensal corrige passivos antigos?",
-    a: "A auditoria mensal atua de forma preventiva, reduzindo falhas recorrentes e melhorando a qualidade do fechamento atual. Em situações retroativas, o ideal é tratar o histórico com uma abordagem específica e documentada.",
+    q: "Vocês apenas vendem o sistema?",
+    a: "Não. A proposta da De Ponto a Ponto envolve tecnologia, implantação, suporte, acompanhamento e experiência prática no segmento.",
   },
   {
-    q: "O reconhecimento facial substitui uma rotina de conferência?",
-    a: "Não completamente. O equipamento fortalece a captura e a confiabilidade do registro, mas a maturidade operacional vem da combinação entre tecnologia, revisão e acompanhamento.",
+    q: "A empresa também realiza suporte em campo?",
+    a: "Sim. A atuação inclui instalação, manutenção, suporte técnico e acompanhamento conforme a necessidade operacional do cliente.",
   },
   {
-    q: "Essa solução atende empresas com várias unidades?",
-    a: "Sim. A estrutura é adequada para operações que precisam de padronização, escalabilidade e maior visibilidade sobre a jornada em diferentes frentes.",
+    q: "Há apoio na implantação e treinamento?",
+    a: "Sim. O objetivo é garantir que o cliente tenha clareza no uso da solução, com suporte humano e orientação adequada.",
   },
   {
-    q: "Vocês atuam apenas com software?",
-    a: "Não. Nossa atuação integra equipamentos REP-P, suporte técnico, rotina operacional e auditoria mensal para uma entrega mais completa.",
+    q: "Por que mostrar fotos reais da operação no site?",
+    a: "Porque isso aumenta credibilidade, reforça autenticidade e diferencia a marca de concorrentes com comunicação genérica.",
   },
 ];
 

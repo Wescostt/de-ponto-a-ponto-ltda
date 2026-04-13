@@ -6,7 +6,7 @@ const FooterSection = () => {
           © De Ponto a Ponto LTDA — Todos os direitos reservados.
         </p>
         <p className="text-muted-foreground/50 text-[10px] tracking-widest uppercase">
-          Design corporativo com foco em segurança, clareza e performance.
+          Design corporativo com mais clareza, proximidade e credibilidade.
         </p>
       </div>
     </footer>

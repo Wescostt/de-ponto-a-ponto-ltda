@@ -2,20 +2,20 @@ import { motion } from "framer-motion";
 
 const diffs = [
   {
-    title: "Prevenção antes do fechamento",
-    desc: "Identificamos falhas e inconsistências com antecedência para reduzir retrabalho, ruído interno e risco documental.",
+    title: "Empresa com rosto e presença",
+    desc: "As imagens mostram equipe, cliente, suporte e implantação real, o que gera mais confiança.",
   },
   {
-    title: "Tecnologia com contexto real de DP",
-    desc: "Mais do que software, entregamos acompanhamento alinhado à rotina prática do RH e do Departamento Pessoal.",
+    title: "Tecnologia com proximidade humana",
+    desc: "O site transmite inovação sem perder o caráter acessível, consultivo e profissional.",
   },
   {
-    title: "Hardware + processo + suporte",
-    desc: "A solução fica completa quando o equipamento, a operação e a revisão caminham juntos.",
+    title: "Visual claro e mais premium",
+    desc: "O fundo mais claro amplia percepção de qualidade, limpeza e sofisticação corporativa.",
   },
   {
-    title: "Escalabilidade com padrão",
-    desc: "Ideal para empresas que desejam padronizar a jornada entre setores, filiais e múltiplas unidades.",
+    title: "Marca mais confiável",
+    desc: "A combinação entre estrutura visual e imagens reais posiciona a empresa acima de um fornecedor comum.",
   },
 ];
 
@@ -31,11 +31,10 @@ const DifferentialsSection = () => {
           >
             <p className="text-primary text-sm tracking-[0.2em] uppercase mb-3">Diferenciais</p>
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Menos improviso. Mais previsibilidade.
+              Menos aparência genérica. Mais verdade operacional.
             </h2>
             <p className="text-muted-foreground text-sm leading-relaxed">
-              A diferença está em tratar o ponto não como uma obrigação isolada,
-              mas como parte crítica da governança operacional da empresa.
+              O que diferencia sua marca é mostrar que existe atendimento, estrutura, histórico e acompanhamento de verdade.
             </p>
           </motion.div>
 
