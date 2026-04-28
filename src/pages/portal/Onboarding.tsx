@@ -599,9 +599,20 @@ const Onboarding = () => {
                   </p>
                 )}
               </div>
-              {!allRequiredFilled && (
-                <p className="text-xs text-destructive">Complete todas as etapas obrigatórias antes de enviar.</p>
-              )}
+              <div className="space-y-1.5">
+                {!allRequiredFilled && (
+                  <p className="text-xs text-destructive">⚠ Complete todas as etapas obrigatórias antes de enviar.</p>
+                )}
+                {!cnpjValid && (
+                  <p className="text-xs text-destructive">⚠ CNPJ inválido — corrija na etapa "Dados da empresa".</p>
+                )}
+                {data.cnpj_lookup?.status === "network" && (
+                  <p className="text-xs text-destructive">⚠ Última consulta à BrasilAPI falhou ({data.cnpj_lookup.message}). Refaça a busca antes de enviar.</p>
+                )}
+                {data.cnpj_lookup?.status === "notfound" && (
+                  <p className="text-xs text-amber-500">ℹ Este CNPJ não foi localizado na Receita. Verifique se os dados preenchidos manualmente estão corretos.</p>
+                )}
+              </div>
             </div>
           )}
 
