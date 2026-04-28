@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import PageHeader from "@/components/portal/PageHeader";
@@ -9,7 +9,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
-import { Loader2, Save, Send } from "lucide-react";
+import { Check, Circle, Loader2, Save, Send, Upload, FileText, Trash2, Building2, Users, Clock, Target, FolderUp, PartyPopper } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 type Data = {
   company_name?: string;
@@ -21,20 +22,47 @@ type Data = {
   notes?: string;
 };
 
-const steps = [
-  { title: "Dados da empresa", fields: ["company_name", "cnpj", "contact_name"] as const },
-  { title: "Estrutura", fields: ["employees_count"] as const },
-  { title: "Controle de ponto", fields: ["control_type"] as const },
-  { title: "Necessidades", fields: ["needs", "notes"] as const },
+type DocCategory = "contrato_social" | "cnpj_card" | "folha_modelo" | "outros";
+
+const docCategories: { id: DocCategory; label: string; description: string; required: boolean }[] = [
+  { id: "contrato_social", label: "Contrato Social", description: "Última alteração consolidada", required: true },
+  { id: "cnpj_card", label: "Cartão CNPJ", description: "Comprovante atualizado da Receita", required: true },
+  { id: "folha_modelo", label: "Folha de pagamento (modelo)", description: "Exemplo de holerite ou planilha de folha", required: true },
+  { id: "outros", label: "Outros documentos", description: "Convenção coletiva, escala, etc. (opcional)", required: false },
 ];
 
+const steps = [
+  { key: "empresa", title: "Dados da empresa", icon: Building2, description: "Identificação básica do CNPJ contratante." },
+  { key: "estrutura", title: "Estrutura", icon: Users, description: "Tamanho da operação e perfil dos colaboradores." },
+  { key: "controle", title: "Controle de ponto", icon: Clock, description: "Como o ponto é registrado hoje." },
+  { key: "necessidades", title: "Necessidades", icon: Target, description: "Objetivos e dores que devemos resolver." },
+  { key: "documentos", title: "Documentos", icon: FolderUp, description: "Envie os arquivos para configurarmos sua conta." },
+  { key: "revisao", title: "Revisão & envio", icon: PartyPopper, description: "Confira tudo e envie para a nossa equipe." },
+] as const;
+
+type DocRow = { id: string; category: string; file_name: string; storage_path: string; file_size: number | null };
+
 const Onboarding = () => {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const [recordId, setRecordId] = useState<string | null>(null);
   const [step, setStep] = useState(0);
   const [data, setData] = useState<Data>({});
+  const [status, setStatus] = useState<string>("rascunho");
   const [busy, setBusy] = useState(false);
   const [loaded, setLoaded] = useState(false);
+  const [docs, setDocs] = useState<DocRow[]>([]);
+  const [uploadingCat, setUploadingCat] = useState<DocCategory | null>(null);
+  const fileInputs = useRef<Record<string, HTMLInputElement | null>>({});
+
+  const loadDocs = async () => {
+    if (!user) return;
+    const { data: rows } = await supabase
+      .from("onboarding_documents")
+      .select("*")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false });
+    setDocs((rows ?? []) as DocRow[]);
+  };
 
   useEffect(() => {
     if (!user) return;
@@ -50,16 +78,19 @@ const Onboarding = () => {
         setRecordId(row.id);
         setData((row.data_json as Data) || {});
         setStep(row.current_step || 0);
+        setStatus(row.status);
       }
+      await loadDocs();
       setLoaded(true);
     })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
-  const save = async (status: "rascunho" | "enviado" = "rascunho") => {
+  const save = async (newStatus?: "rascunho" | "enviado") => {
     if (!user) return;
     setBusy(true);
     try {
-      const payload = { user_id: user.id, data_json: data, current_step: step, status };
+      const payload: any = { user_id: user.id, data_json: data, current_step: step, status: newStatus ?? status };
       if (recordId) {
         const { error } = await supabase.from("onboarding_requests").update(payload).eq("id", recordId);
         if (error) throw error;
@@ -68,7 +99,8 @@ const Onboarding = () => {
         if (error) throw error;
         setRecordId(ins.id);
       }
-      toast.success(status === "enviado" ? "Onboarding enviado." : "Salvo.");
+      if (newStatus) setStatus(newStatus);
+      if (newStatus === "enviado") toast.success("Onboarding enviado para nossa equipe.");
     } catch (e: any) {
       toast.error(e.message);
     } finally {
@@ -79,60 +111,311 @@ const Onboarding = () => {
   // autosave debounced
   useEffect(() => {
     if (!loaded || !user) return;
-    const t = setTimeout(() => save("rascunho"), 1500);
+    const t = setTimeout(() => save(), 1500);
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data, step]);
 
   const set = (k: keyof Data, v: string) => setData((d) => ({ ...d, [k]: v }));
-  const progress = ((step + 1) / steps.length) * 100;
+
+  // ---------- Step completion ----------
+  const completion = useMemo(() => {
+    const checks: Record<string, boolean> = {
+      empresa: !!(data.company_name && data.cnpj && data.contact_name),
+      estrutura: !!data.employees_count,
+      controle: !!data.control_type,
+      necessidades: !!data.needs,
+      documentos: docCategories.filter((c) => c.required).every((c) => docs.some((d) => d.category === c.id)),
+      revisao: status === "enviado",
+    };
+    return checks;
+  }, [data, docs, status]);
+
+  const completedCount = Object.values(completion).filter(Boolean).length;
+  const progress = (completedCount / steps.length) * 100;
+
+  // ---------- Upload ----------
+  const onUpload = async (cat: DocCategory, file: File) => {
+    if (!user) return;
+    setUploadingCat(cat);
+    try {
+      const safe = file.name.replace(/[^\w.\-]+/g, "_");
+      const path = `${user.id}/${cat}/${Date.now()}_${safe}`;
+      const { error: upErr } = await supabase.storage.from("onboarding-docs").upload(path, file, { upsert: false });
+      if (upErr) throw upErr;
+      const { error: insErr } = await supabase.from("onboarding_documents").insert({
+        user_id: user.id,
+        category: cat,
+        file_name: file.name,
+        storage_path: path,
+        file_size: file.size,
+        mime_type: file.type,
+      });
+      if (insErr) throw insErr;
+      toast.success("Arquivo enviado.");
+      await loadDocs();
+    } catch (e: any) {
+      toast.error(e.message);
+    } finally {
+      setUploadingCat(null);
+    }
+  };
+
+  const removeDoc = async (d: DocRow) => {
+    try {
+      await supabase.storage.from("onboarding-docs").remove([d.storage_path]);
+      await supabase.from("onboarding_documents").delete().eq("id", d.id);
+      toast.success("Removido");
+      loadDocs();
+    } catch (e: any) {
+      toast.error(e.message);
+    }
+  };
+
+  const downloadDoc = async (d: DocRow) => {
+    const { data: signed } = await supabase.storage.from("onboarding-docs").createSignedUrl(d.storage_path, 60);
+    if (signed?.signedUrl) window.open(signed.signedUrl, "_blank");
+  };
+
+  const requiredDocsMissing = docCategories.filter((c) => c.required && !docs.some((d) => d.category === c.id));
+  const allRequiredFilled = ["empresa", "estrutura", "controle", "necessidades", "documentos"].every((k) => completion[k]);
+
   const current = steps[step];
 
+  // Already submitted screen
+  if (status === "enviado") {
+    return (
+      <div className="max-w-2xl mx-auto">
+        <PageHeader title="Onboarding concluído" subtitle="Recebemos suas informações. Entraremos em contato em breve." />
+        <Card className="glass p-10 text-center">
+          <div className="w-16 h-16 rounded-full bg-primary/15 flex items-center justify-center mx-auto mb-4">
+            <PartyPopper className="w-8 h-8 text-primary" />
+          </div>
+          <h2 className="text-2xl font-semibold mb-2">Tudo certo, {profile?.full_name?.split(" ")[0] || "tudo bem"}!</h2>
+          <p className="text-muted-foreground mb-6">
+            Seu onboarding foi enviado com sucesso. Nosso time analisará as informações e os documentos enviados e
+            retornará em até 2 dias úteis.
+          </p>
+          <Button variant="outline" onClick={() => { setStatus("rascunho"); setStep(0); }}>Editar respostas</Button>
+        </Card>
+      </div>
+    );
+  }
+
   return (
-    <div className="max-w-2xl mx-auto">
-      <PageHeader title="Onboarding interativo" subtitle="Preencha as informações iniciais. Salvamos automaticamente." />
-      <Progress value={progress} className="mb-6" />
-      <Card className="glass p-8">
-        <p className="text-xs uppercase tracking-widest text-primary mb-2">Etapa {step + 1} de {steps.length}</p>
-        <h2 className="text-xl font-semibold mb-6">{current.title}</h2>
+    <div>
+      <PageHeader title="Onboarding guiado" subtitle="Vamos configurar sua conta em poucos passos. Salvamos automaticamente." />
 
-        <div className="space-y-4">
-          {current.fields.includes("company_name" as never) && (
-            <div><Label>Nome da empresa</Label><Input value={data.company_name ?? ""} onChange={(e) => set("company_name", e.target.value)} /></div>
-          )}
-          {current.fields.includes("cnpj" as never) && (
-            <div><Label>CNPJ</Label><Input value={data.cnpj ?? ""} onChange={(e) => set("cnpj", e.target.value)} /></div>
-          )}
-          {current.fields.includes("contact_name" as never) && (
-            <div><Label>Nome do responsável</Label><Input value={data.contact_name ?? ""} onChange={(e) => set("contact_name", e.target.value)} /></div>
-          )}
-          {current.fields.includes("employees_count" as never) && (
-            <div><Label>Número de funcionários</Label><Input type="number" value={data.employees_count ?? ""} onChange={(e) => set("employees_count", e.target.value)} /></div>
-          )}
-          {current.fields.includes("control_type" as never) && (
-            <div><Label>Tipo de controle de ponto atual</Label><Input placeholder="ex: papel, cartão, REP-P, app" value={data.control_type ?? ""} onChange={(e) => set("control_type", e.target.value)} /></div>
-          )}
-          {current.fields.includes("needs" as never) && (
-            <div><Label>Necessidades específicas</Label><Textarea value={data.needs ?? ""} onChange={(e) => set("needs", e.target.value)} /></div>
-          )}
-          {current.fields.includes("notes" as never) && (
-            <div><Label>Observações</Label><Textarea value={data.notes ?? ""} onChange={(e) => set("notes", e.target.value)} /></div>
-          )}
-        </div>
+      <div className="grid lg:grid-cols-[300px_1fr] gap-6">
+        {/* Sidebar checklist */}
+        <aside className="space-y-3">
+          <Card className="glass p-5">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs uppercase tracking-widest text-muted-foreground">Progresso</span>
+              <span className="text-xs font-medium">{completedCount}/{steps.length}</span>
+            </div>
+            <Progress value={progress} className="h-2" />
+          </Card>
 
-        <div className="flex justify-between mt-8">
-          <Button variant="outline" disabled={step === 0} onClick={() => setStep(step - 1)}>Voltar</Button>
-          {step < steps.length - 1 ? (
-            <Button onClick={() => setStep(step + 1)}>Avançar</Button>
-          ) : (
-            <Button onClick={() => save("enviado")} disabled={busy}>
-              {busy ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Send className="w-4 h-4 mr-2" />}
-              Enviar onboarding
-            </Button>
+          <Card className="glass p-2">
+            <ul className="space-y-1">
+              {steps.map((s, i) => {
+                const done = completion[s.key];
+                const active = i === step;
+                const Icon = s.icon;
+                return (
+                  <li key={s.key}>
+                    <button
+                      onClick={() => setStep(i)}
+                      className={cn(
+                        "w-full flex items-start gap-3 px-3 py-3 rounded-lg text-left transition group",
+                        active ? "bg-primary/10 border border-primary/20" : "hover:bg-muted/50 border border-transparent"
+                      )}
+                    >
+                      <div className={cn(
+                        "mt-0.5 w-6 h-6 rounded-full flex items-center justify-center shrink-0 transition",
+                        done ? "bg-primary text-primary-foreground" : active ? "bg-primary/20 text-primary" : "bg-muted text-muted-foreground"
+                      )}>
+                        {done ? <Check className="w-3.5 h-3.5" /> : <Icon className="w-3.5 h-3.5" />}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className={cn("text-sm font-medium", active ? "text-foreground" : "text-foreground/80")}>
+                          {s.title}
+                        </p>
+                        <p className="text-xs text-muted-foreground line-clamp-2">{s.description}</p>
+                      </div>
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          </Card>
+
+          <p className="text-xs text-muted-foreground flex items-center gap-1 px-2">
+            <Save className="w-3 h-3" /> Salvamento automático ativo
+          </p>
+        </aside>
+
+        {/* Main content */}
+        <Card className="glass p-8">
+          <div className="flex items-center gap-3 mb-1">
+            <div className="w-10 h-10 rounded-lg bg-primary/15 flex items-center justify-center">
+              <current.icon className="w-5 h-5 text-primary" />
+            </div>
+            <div>
+              <p className="text-xs uppercase tracking-widest text-primary">Etapa {step + 1} de {steps.length}</p>
+              <h2 className="text-xl font-semibold">{current.title}</h2>
+            </div>
+          </div>
+          <p className="text-sm text-muted-foreground mb-6">{current.description}</p>
+
+          {/* Step content */}
+          {current.key === "empresa" && (
+            <div className="space-y-4">
+              <div><Label>Nome da empresa</Label><Input value={data.company_name ?? ""} onChange={(e) => set("company_name", e.target.value)} placeholder="Razão social" /></div>
+              <div className="grid md:grid-cols-2 gap-4">
+                <div><Label>CNPJ</Label><Input value={data.cnpj ?? ""} onChange={(e) => set("cnpj", e.target.value)} placeholder="00.000.000/0000-00" /></div>
+                <div><Label>Responsável (RH/DP)</Label><Input value={data.contact_name ?? ""} onChange={(e) => set("contact_name", e.target.value)} placeholder="Nome do contato principal" /></div>
+              </div>
+            </div>
           )}
-        </div>
-      </Card>
-      <p className="text-xs text-muted-foreground mt-3 flex items-center gap-1"><Save className="w-3 h-3" /> Salvamento automático ativo</p>
+
+          {current.key === "estrutura" && (
+            <div className="space-y-4">
+              <div><Label>Número de funcionários</Label><Input type="number" min={1} value={data.employees_count ?? ""} onChange={(e) => set("employees_count", e.target.value)} placeholder="ex: 45" /></div>
+            </div>
+          )}
+
+          {current.key === "controle" && (
+            <div className="space-y-4">
+              <div>
+                <Label>Tipo de controle de ponto atual</Label>
+                <Input value={data.control_type ?? ""} onChange={(e) => set("control_type", e.target.value)} placeholder="ex: papel, cartão, REP-P, app móvel" />
+              </div>
+            </div>
+          )}
+
+          {current.key === "necessidades" && (
+            <div className="space-y-4">
+              <div><Label>Necessidades específicas</Label><Textarea rows={4} value={data.needs ?? ""} onChange={(e) => set("needs", e.target.value)} placeholder="Quais problemas você quer resolver com a gente?" /></div>
+              <div><Label>Observações adicionais</Label><Textarea rows={3} value={data.notes ?? ""} onChange={(e) => set("notes", e.target.value)} placeholder="Algo que devemos saber antes de começar?" /></div>
+            </div>
+          )}
+
+          {current.key === "documentos" && (
+            <div className="space-y-3">
+              {docCategories.map((cat) => {
+                const sent = docs.filter((d) => d.category === cat.id);
+                const isUploading = uploadingCat === cat.id;
+                return (
+                  <div key={cat.id} className="border border-border/50 rounded-xl p-4 bg-card/40">
+                    <div className="flex items-start justify-between gap-4 mb-3">
+                      <div className="flex items-start gap-3">
+                        <div className={cn(
+                          "w-8 h-8 rounded-lg flex items-center justify-center shrink-0",
+                          sent.length ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
+                        )}>
+                          {sent.length ? <Check className="w-4 h-4" /> : <Circle className="w-4 h-4" />}
+                        </div>
+                        <div>
+                          <p className="font-medium text-sm flex items-center gap-2">
+                            {cat.label}
+                            {cat.required && <span className="text-[10px] uppercase tracking-wider text-primary bg-primary/10 px-1.5 py-0.5 rounded">obrigatório</span>}
+                          </p>
+                          <p className="text-xs text-muted-foreground">{cat.description}</p>
+                        </div>
+                      </div>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => fileInputs.current[cat.id]?.click()}
+                        disabled={isUploading}
+                      >
+                        {isUploading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Upload className="w-4 h-4 mr-2" />}
+                        Enviar
+                      </Button>
+                      <input
+                        ref={(el) => (fileInputs.current[cat.id] = el)}
+                        type="file"
+                        accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg"
+                        className="hidden"
+                        onChange={(e) => {
+                          const f = e.target.files?.[0];
+                          if (f) onUpload(cat.id, f);
+                          e.target.value = "";
+                        }}
+                      />
+                    </div>
+                    {sent.length > 0 && (
+                      <ul className="space-y-1.5 pl-11">
+                        {sent.map((d) => (
+                          <li key={d.id} className="flex items-center justify-between text-xs bg-background/40 rounded-md px-3 py-2">
+                            <button onClick={() => downloadDoc(d)} className="flex items-center gap-2 text-left hover:text-primary truncate">
+                              <FileText className="w-3.5 h-3.5 shrink-0" />
+                              <span className="truncate">{d.file_name}</span>
+                            </button>
+                            <button onClick={() => removeDoc(d)} className="text-muted-foreground hover:text-destructive ml-2">
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {current.key === "revisao" && (
+            <div className="space-y-4">
+              <div className="grid md:grid-cols-2 gap-3 text-sm">
+                {[
+                  ["Empresa", data.company_name],
+                  ["CNPJ", data.cnpj],
+                  ["Responsável", data.contact_name],
+                  ["Funcionários", data.employees_count],
+                  ["Controle atual", data.control_type],
+                ].map(([k, v]) => (
+                  <div key={k} className="bg-background/40 rounded-lg px-4 py-3">
+                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground">{k}</p>
+                    <p className="text-sm">{v || <span className="text-muted-foreground italic">—</span>}</p>
+                  </div>
+                ))}
+              </div>
+              <div className="bg-background/40 rounded-lg px-4 py-3">
+                <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Necessidades</p>
+                <p className="text-sm whitespace-pre-wrap">{data.needs || <span className="text-muted-foreground italic">—</span>}</p>
+              </div>
+              <div className="bg-background/40 rounded-lg px-4 py-3">
+                <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Documentos</p>
+                <p className="text-sm">{docs.length} arquivo(s) enviado(s)</p>
+                {requiredDocsMissing.length > 0 && (
+                  <p className="text-xs text-destructive mt-1">
+                    Faltando: {requiredDocsMissing.map((c) => c.label).join(", ")}
+                  </p>
+                )}
+              </div>
+              {!allRequiredFilled && (
+                <p className="text-xs text-destructive">Complete todas as etapas obrigatórias antes de enviar.</p>
+              )}
+            </div>
+          )}
+
+          {/* Navigation */}
+          <div className="flex justify-between mt-8 pt-6 border-t border-border/50">
+            <Button variant="outline" disabled={step === 0} onClick={() => setStep(step - 1)}>Voltar</Button>
+            {step < steps.length - 1 ? (
+              <Button onClick={() => setStep(step + 1)}>Avançar</Button>
+            ) : (
+              <Button onClick={() => save("enviado")} disabled={busy || !allRequiredFilled}>
+                {busy ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Send className="w-4 h-4 mr-2" />}
+                Enviar onboarding
+              </Button>
+            )}
+          </div>
+        </Card>
+      </div>
     </div>
   );
 };
