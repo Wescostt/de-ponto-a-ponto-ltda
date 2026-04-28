@@ -53,7 +53,36 @@ const Onboarding = () => {
   const [loaded, setLoaded] = useState(false);
   const [docs, setDocs] = useState<DocRow[]>([]);
   const [uploadingCat, setUploadingCat] = useState<DocCategory | null>(null);
+  const [cnpjLookup, setCnpjLookup] = useState<"idle" | "loading" | "found" | "notfound">("idle");
   const fileInputs = useRef<Record<string, HTMLInputElement | null>>({});
+
+  const cnpjDigits = onlyDigits(data.cnpj ?? "");
+  const cnpjValid = cnpjDigits.length === 14 && isValidCnpj(cnpjDigits);
+  const cnpjPartial = cnpjDigits.length > 0 && cnpjDigits.length < 14;
+  const cnpjInvalid = cnpjDigits.length === 14 && !cnpjValid;
+
+  const handleCnpjChange = (v: string) => {
+    setData((d) => ({ ...d, cnpj: formatCnpj(v) }));
+    setCnpjLookup("idle");
+  };
+
+  const handleCnpjLookup = async () => {
+    if (!cnpjValid) return;
+    setCnpjLookup("loading");
+    const info = await lookupCnpj(cnpjDigits);
+    if (!info) {
+      setCnpjLookup("notfound");
+      toast.error("CNPJ não encontrado na Receita.");
+      return;
+    }
+    setCnpjLookup("found");
+    setData((d) => ({
+      ...d,
+      company_name: d.company_name || info.razao_social || info.nome_fantasia || "",
+    }));
+    toast.success(`Empresa encontrada: ${info.razao_social ?? info.nome_fantasia}`);
+  };
+
 
   const loadDocs = async () => {
     if (!user) return;
