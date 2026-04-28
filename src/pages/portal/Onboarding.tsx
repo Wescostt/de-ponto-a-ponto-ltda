@@ -30,6 +30,13 @@ type Data = {
   control_type?: string;
   needs?: string;
   notes?: string;
+  cnpj_lookup?: {
+    queried_at: string;
+    cnpj: string;
+    status: "found" | "notfound" | "network" | "invalid";
+    razao_social?: string | null;
+    message?: string;
+  };
 };
 
 type DocCategory = "contrato_social" | "cnpj_card" | "folha_modelo" | "outros";
@@ -62,7 +69,8 @@ const Onboarding = () => {
   const [loaded, setLoaded] = useState(false);
   const [docs, setDocs] = useState<DocRow[]>([]);
   const [uploadingCat, setUploadingCat] = useState<DocCategory | null>(null);
-  const [cnpjLookup, setCnpjLookup] = useState<"idle" | "loading" | "found" | "notfound">("idle");
+  const [cnpjLookup, setCnpjLookup] = useState<"idle" | "loading" | "found" | "notfound" | "network">("idle");
+  const [cnpjLookupError, setCnpjLookupError] = useState<string | null>(null);
   const fileInputs = useRef<Record<string, HTMLInputElement | null>>({});
 
   const cnpjDigits = onlyDigits(data.cnpj ?? "");
@@ -73,18 +81,31 @@ const Onboarding = () => {
   const handleCnpjChange = (v: string) => {
     setData((d) => ({ ...d, cnpj: formatCnpj(v) }));
     setCnpjLookup("idle");
+    setCnpjLookupError(null);
   };
 
   const handleCnpjLookup = async () => {
     if (!cnpjValid) return;
     setCnpjLookup("loading");
-    const info = await lookupCnpj(cnpjDigits);
-    if (!info) {
-      setCnpjLookup("notfound");
-      toast.error("CNPJ não encontrado na Receita.");
+    setCnpjLookupError(null);
+    const result = await lookupCnpj(cnpjDigits);
+    const nowIso = new Date().toISOString();
+
+    if (result.ok === false) {
+      const err = result as { ok: false; reason: "invalid" | "notfound" | "network"; message: string };
+      setCnpjLookup(err.reason === "notfound" ? "notfound" : "network");
+      setCnpjLookupError(err.message);
+      setData((d) => ({
+        ...d,
+        cnpj_lookup: { queried_at: nowIso, cnpj: data.cnpj ?? "", status: err.reason, message: err.message },
+      }));
+      toast.error(err.message);
       return;
     }
+
+    const info = result.data;
     setCnpjLookup("found");
+    setCnpjLookupError(null);
     setData((d) => ({
       ...d,
       company_name: d.company_name || info.razao_social || info.nome_fantasia || "",
@@ -97,6 +118,12 @@ const Onboarding = () => {
       district: d.district || info.bairro || "",
       city: d.city || info.municipio || "",
       state: d.state || info.uf || "",
+      cnpj_lookup: {
+        queried_at: nowIso,
+        cnpj: data.cnpj ?? "",
+        status: "found",
+        razao_social: info.razao_social ?? info.nome_fantasia ?? null,
+      },
     }));
     toast.success(`Empresa encontrada: ${info.razao_social ?? info.nome_fantasia}`);
   };
@@ -352,7 +379,42 @@ const Onboarding = () => {
                 {cnpjValid && cnpjLookup === "idle" && <p className="text-xs text-muted-foreground mt-1">Clique em Buscar para preencher os dados automaticamente.</p>}
                 {cnpjLookup === "found" && <p className="text-xs text-primary mt-1">Dados preenchidos a partir da Receita.</p>}
                 {cnpjLookup === "notfound" && <p className="text-xs text-destructive mt-1">CNPJ não encontrado — preencha manualmente.</p>}
+                {cnpjLookup === "network" && (
+                  <p className="text-xs text-destructive mt-1">
+                    Falha ao consultar a Receita: {cnpjLookupError ?? "verifique sua conexão"}. Você pode tentar novamente ou preencher manualmente.
+                  </p>
+                )}
               </div>
+
+              {data.cnpj_lookup && (
+                <div className="rounded-xl border border-border/50 bg-card/40 px-4 py-3 flex items-start gap-3 text-sm">
+                  <div className={cn(
+                    "w-7 h-7 rounded-full flex items-center justify-center shrink-0 mt-0.5",
+                    data.cnpj_lookup.status === "found" ? "bg-primary/15 text-primary" : "bg-destructive/15 text-destructive"
+                  )}>
+                    {data.cnpj_lookup.status === "found" ? <CheckCircle2 className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs uppercase tracking-widest text-muted-foreground">Última consulta</p>
+                    <p className="font-medium truncate">
+                      {data.cnpj_lookup.razao_social || (data.cnpj_lookup.status === "found" ? "—" : "Sem retorno")}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      CNPJ {data.cnpj_lookup.cnpj} • {new Date(data.cnpj_lookup.queried_at).toLocaleString("pt-BR")} •{" "}
+                      <span className={cn(
+                        data.cnpj_lookup.status === "found" ? "text-primary" : "text-destructive"
+                      )}>
+                        {data.cnpj_lookup.status === "found" && "encontrado"}
+                        {data.cnpj_lookup.status === "notfound" && "não encontrado"}
+                        {data.cnpj_lookup.status === "network" && "falha de rede"}
+                        {data.cnpj_lookup.status === "invalid" && "inválido"}
+                      </span>
+                      {data.cnpj_lookup.message ? ` — ${data.cnpj_lookup.message}` : ""}
+                    </p>
+                  </div>
+                </div>
+              )}
+
               <div className="grid md:grid-cols-2 gap-4">
                 <div>
                   <Label>Razão social</Label>
@@ -537,9 +599,20 @@ const Onboarding = () => {
                   </p>
                 )}
               </div>
-              {!allRequiredFilled && (
-                <p className="text-xs text-destructive">Complete todas as etapas obrigatórias antes de enviar.</p>
-              )}
+              <div className="space-y-1.5">
+                {!allRequiredFilled && (
+                  <p className="text-xs text-destructive">⚠ Complete todas as etapas obrigatórias antes de enviar.</p>
+                )}
+                {!cnpjValid && (
+                  <p className="text-xs text-destructive">⚠ CNPJ inválido — corrija na etapa "Dados da empresa".</p>
+                )}
+                {data.cnpj_lookup?.status === "network" && (
+                  <p className="text-xs text-destructive">⚠ Última consulta à BrasilAPI falhou ({data.cnpj_lookup.message}). Refaça a busca antes de enviar.</p>
+                )}
+                {data.cnpj_lookup?.status === "notfound" && (
+                  <p className="text-xs text-amber-500">ℹ Este CNPJ não foi localizado na Receita. Verifique se os dados preenchidos manualmente estão corretos.</p>
+                )}
+              </div>
             </div>
           )}
 
@@ -549,7 +622,7 @@ const Onboarding = () => {
             {step < steps.length - 1 ? (
               <Button onClick={() => setStep(step + 1)}>Avançar</Button>
             ) : (
-              <Button onClick={() => save("enviado")} disabled={busy || !allRequiredFilled}>
+              <Button onClick={() => save("enviado")} disabled={busy || !allRequiredFilled || !cnpjValid || data.cnpj_lookup?.status === "network"}>
                 {busy ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Send className="w-4 h-4 mr-2" />}
                 Enviar onboarding
               </Button>
