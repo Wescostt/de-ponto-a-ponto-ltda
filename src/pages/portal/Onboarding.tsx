@@ -15,8 +15,17 @@ import { formatCnpj, isValidCnpj, lookupCnpj, onlyDigits } from "@/lib/cnpj";
 
 type Data = {
   company_name?: string;
+  trade_name?: string;
   cnpj?: string;
   contact_name?: string;
+  email?: string;
+  phone?: string;
+  cep?: string;
+  address?: string;
+  number?: string;
+  district?: string;
+  city?: string;
+  state?: string;
   employees_count?: string;
   control_type?: string;
   needs?: string;
