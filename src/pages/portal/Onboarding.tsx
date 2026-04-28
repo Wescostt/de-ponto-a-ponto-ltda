@@ -379,6 +379,42 @@ const Onboarding = () => {
                 {cnpjValid && cnpjLookup === "idle" && <p className="text-xs text-muted-foreground mt-1">Clique em Buscar para preencher os dados automaticamente.</p>}
                 {cnpjLookup === "found" && <p className="text-xs text-primary mt-1">Dados preenchidos a partir da Receita.</p>}
                 {cnpjLookup === "notfound" && <p className="text-xs text-destructive mt-1">CNPJ não encontrado — preencha manualmente.</p>}
+                {cnpjLookup === "network" && (
+                  <p className="text-xs text-destructive mt-1">
+                    Falha ao consultar a Receita: {cnpjLookupError ?? "verifique sua conexão"}. Você pode tentar novamente ou preencher manualmente.
+                  </p>
+                )}
+              </div>
+
+              {data.cnpj_lookup && (
+                <div className="rounded-xl border border-border/50 bg-card/40 px-4 py-3 flex items-start gap-3 text-sm">
+                  <div className={cn(
+                    "w-7 h-7 rounded-full flex items-center justify-center shrink-0 mt-0.5",
+                    data.cnpj_lookup.status === "found" ? "bg-primary/15 text-primary" : "bg-destructive/15 text-destructive"
+                  )}>
+                    {data.cnpj_lookup.status === "found" ? <CheckCircle2 className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs uppercase tracking-widest text-muted-foreground">Última consulta</p>
+                    <p className="font-medium truncate">
+                      {data.cnpj_lookup.razao_social || (data.cnpj_lookup.status === "found" ? "—" : "Sem retorno")}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      CNPJ {data.cnpj_lookup.cnpj} • {new Date(data.cnpj_lookup.queried_at).toLocaleString("pt-BR")} •{" "}
+                      <span className={cn(
+                        data.cnpj_lookup.status === "found" ? "text-primary" : "text-destructive"
+                      )}>
+                        {data.cnpj_lookup.status === "found" && "encontrado"}
+                        {data.cnpj_lookup.status === "notfound" && "não encontrado"}
+                        {data.cnpj_lookup.status === "network" && "falha de rede"}
+                        {data.cnpj_lookup.status === "invalid" && "inválido"}
+                      </span>
+                      {data.cnpj_lookup.message ? ` — ${data.cnpj_lookup.message}` : ""}
+                    </p>
+                  </div>
+                </div>
+              )}
+
               </div>
               <div className="grid md:grid-cols-2 gap-4">
                 <div>
