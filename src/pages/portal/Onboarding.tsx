@@ -353,10 +353,66 @@ const Onboarding = () => {
                 {cnpjLookup === "found" && <p className="text-xs text-primary mt-1">Dados preenchidos a partir da Receita.</p>}
                 {cnpjLookup === "notfound" && <p className="text-xs text-destructive mt-1">CNPJ não encontrado — preencha manualmente.</p>}
               </div>
-              <div>
-                <Label>Razão social</Label>
-                <Input value={data.company_name ?? ""} onChange={(e) => set("company_name", e.target.value)} placeholder="Nome empresarial registrado" />
+              <div className="grid md:grid-cols-2 gap-4">
+                <div>
+                  <Label>Razão social</Label>
+                  <Input value={data.company_name ?? ""} onChange={(e) => set("company_name", e.target.value)} placeholder="Nome empresarial registrado" />
+                </div>
+                <div>
+                  <Label>Nome fantasia</Label>
+                  <Input value={data.trade_name ?? ""} onChange={(e) => set("trade_name", e.target.value)} placeholder="Marca / nome comercial" />
+                </div>
               </div>
+              <div className="grid md:grid-cols-2 gap-4">
+                <div>
+                  <Label>Email da empresa</Label>
+                  <Input type="email" value={data.email ?? ""} onChange={(e) => set("email", e.target.value)} placeholder="contato@empresa.com.br" />
+                </div>
+                <div>
+                  <Label>Telefone</Label>
+                  <Input value={data.phone ?? ""} onChange={(e) => set("phone", e.target.value)} placeholder="(00) 00000-0000" />
+                </div>
+              </div>
+
+              {(cnpjLookup === "found" || data.cep || data.address) && (
+                <div className="rounded-xl border border-border/50 bg-card/40 p-4 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs uppercase tracking-widest text-muted-foreground">Endereço</p>
+                    {cnpjLookup === "found" && (
+                      <span className="text-[10px] text-primary bg-primary/10 px-2 py-0.5 rounded">preenchido pela Receita</span>
+                    )}
+                  </div>
+                  <div className="grid md:grid-cols-[140px_1fr_120px] gap-3">
+                    <div>
+                      <Label>CEP</Label>
+                      <Input value={data.cep ?? ""} onChange={(e) => set("cep", e.target.value)} placeholder="00000-000" />
+                    </div>
+                    <div>
+                      <Label>Logradouro</Label>
+                      <Input value={data.address ?? ""} onChange={(e) => set("address", e.target.value)} placeholder="Rua / Av." />
+                    </div>
+                    <div>
+                      <Label>Número</Label>
+                      <Input value={data.number ?? ""} onChange={(e) => set("number", e.target.value)} placeholder="123" />
+                    </div>
+                  </div>
+                  <div className="grid md:grid-cols-[1fr_1fr_100px] gap-3">
+                    <div>
+                      <Label>Bairro</Label>
+                      <Input value={data.district ?? ""} onChange={(e) => set("district", e.target.value)} placeholder="Bairro" />
+                    </div>
+                    <div>
+                      <Label>Cidade</Label>
+                      <Input value={data.city ?? ""} onChange={(e) => set("city", e.target.value)} placeholder="Município" />
+                    </div>
+                    <div>
+                      <Label>UF</Label>
+                      <Input value={data.state ?? ""} onChange={(e) => set("state", (e.target.value || "").toUpperCase().slice(0, 2))} placeholder="UF" maxLength={2} />
+                    </div>
+                  </div>
+                </div>
+              )}
+
               <div>
                 <Label>Responsável (RH/DP)</Label>
                 <Input value={data.contact_name ?? ""} onChange={(e) => set("contact_name", e.target.value)} placeholder="Nome do contato principal" />
