@@ -91,16 +91,15 @@ const Onboarding = () => {
     const result = await lookupCnpj(cnpjDigits);
     const nowIso = new Date().toISOString();
 
-    if (!result.ok) {
-      const reason = result.reason;
-      const message = result.message;
-      setCnpjLookup(reason === "notfound" ? "notfound" : "network");
-      setCnpjLookupError(message);
+    if (result.ok === false) {
+      const err = result as { ok: false; reason: "invalid" | "notfound" | "network"; message: string };
+      setCnpjLookup(err.reason === "notfound" ? "notfound" : "network");
+      setCnpjLookupError(err.message);
       setData((d) => ({
         ...d,
-        cnpj_lookup: { queried_at: nowIso, cnpj: data.cnpj ?? "", status: reason, message },
+        cnpj_lookup: { queried_at: nowIso, cnpj: data.cnpj ?? "", status: err.reason, message: err.message },
       }));
-      toast.error(message);
+      toast.error(err.message);
       return;
     }
 
