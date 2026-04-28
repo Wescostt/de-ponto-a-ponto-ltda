@@ -622,7 +622,7 @@ const Onboarding = () => {
             {step < steps.length - 1 ? (
               <Button onClick={() => setStep(step + 1)}>Avançar</Button>
             ) : (
-              <Button onClick={() => save("enviado")} disabled={busy || !allRequiredFilled}>
+              <Button onClick={() => save("enviado")} disabled={busy || !allRequiredFilled || !cnpjValid || data.cnpj_lookup?.status === "network"}>
                 {busy ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Send className="w-4 h-4 mr-2" />}
                 Enviar onboarding
               </Button>
