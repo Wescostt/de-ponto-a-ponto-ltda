@@ -42,14 +42,25 @@ export interface CnpjLookup {
   cep?: string;
 }
 
-export const lookupCnpj = async (cnpj: string): Promise<CnpjLookup | null> => {
+export type LookupOutcome =
+  | { ok: true; data: CnpjLookup }
+  | { ok: false; reason: "invalid" | "notfound" | "network"; message: string };
+
+export const lookupCnpj = async (cnpj: string): Promise<LookupOutcome> => {
   const c = onlyDigits(cnpj);
-  if (!isValidCnpj(c)) return null;
+  if (!isValidCnpj(c)) {
+    return { ok: false, reason: "invalid", message: "CNPJ com dígitos verificadores inválidos." };
+  }
   try {
     const res = await fetch(`https://brasilapi.com.br/api/cnpj/v1/${c}`);
-    if (!res.ok) return null;
-    return (await res.json()) as CnpjLookup;
-  } catch {
-    return null;
+    if (res.status === 404) {
+      return { ok: false, reason: "notfound", message: "CNPJ não encontrado na base da Receita." };
+    }
+    if (!res.ok) {
+      return { ok: false, reason: "network", message: `Falha na consulta (HTTP ${res.status}).` };
+    }
+    return { ok: true, data: (await res.json()) as CnpjLookup };
+  } catch (e: any) {
+    return { ok: false, reason: "network", message: e?.message || "Sem conexão com o serviço de consulta." };
   }
 };
