@@ -9,8 +9,9 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
-import { Check, Circle, Loader2, Save, Send, Upload, FileText, Trash2, Building2, Users, Clock, Target, FolderUp, PartyPopper } from "lucide-react";
+import { Check, Circle, Loader2, Save, Send, Upload, FileText, Trash2, Building2, Users, Clock, Target, FolderUp, PartyPopper, Search, CheckCircle2, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { formatCnpj, isValidCnpj, lookupCnpj, onlyDigits } from "@/lib/cnpj";
 
 type Data = {
   company_name?: string;
