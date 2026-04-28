@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X } from "lucide-react";
-import logo from "/deponto logo sem fundo.png";
+import logo from "logo-deponto.png";
 
 const navLinks = [
   { label: "Soluções", href: "#solucoes" },
