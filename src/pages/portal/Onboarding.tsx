@@ -92,13 +92,15 @@ const Onboarding = () => {
     const nowIso = new Date().toISOString();
 
     if (!result.ok) {
-      setCnpjLookup(result.reason === "notfound" ? "notfound" : "network");
-      setCnpjLookupError(result.message);
+      const reason = result.reason;
+      const message = result.message;
+      setCnpjLookup(reason === "notfound" ? "notfound" : "network");
+      setCnpjLookupError(message);
       setData((d) => ({
         ...d,
-        cnpj_lookup: { queried_at: nowIso, cnpj: data.cnpj ?? "", status: result.reason, message: result.message },
+        cnpj_lookup: { queried_at: nowIso, cnpj: data.cnpj ?? "", status: reason, message },
       }));
-      toast.error(result.message);
+      toast.error(message);
       return;
     }
 
