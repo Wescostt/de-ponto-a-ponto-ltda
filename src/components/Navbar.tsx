@@ -42,12 +42,17 @@ const Navbar = () => {
           ))}
         </div>
 
-        <a
-          href="#contato"
-          className="hidden lg:inline-flex px-5 py-2 rounded-full bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 transition-colors"
-        >
-          Falar com especialista
-        </a>
+        <div className="hidden lg:flex items-center gap-3">
+          <a href="/portal" className="px-4 py-2 rounded-full text-sm text-foreground/80 hover:text-foreground border border-border/50 hover:border-primary/40 transition">
+            Portal do cliente
+          </a>
+          <a
+            href="#contato"
+            className="inline-flex px-5 py-2 rounded-full bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 transition-colors"
+          >
+            Falar com especialista
+          </a>
+        </div>
 
         <button
           onClick={() => setOpen(!open)}
