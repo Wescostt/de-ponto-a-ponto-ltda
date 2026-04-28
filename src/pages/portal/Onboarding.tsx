@@ -415,7 +415,6 @@ const Onboarding = () => {
                 </div>
               )}
 
-              </div>
               <div className="grid md:grid-cols-2 gap-4">
                 <div>
                   <Label>Razão social</Label>
