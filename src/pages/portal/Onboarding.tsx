@@ -159,7 +159,7 @@ const Onboarding = () => {
       revisao: status === "enviado",
     };
     return checks;
-  }, [data, docs, status]);
+  }, [data, docs, status, cnpjValid]);
 
   const completedCount = Object.values(completion).filter(Boolean).length;
   const progress = (completedCount / steps.length) * 100;
