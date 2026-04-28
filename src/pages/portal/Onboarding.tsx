@@ -69,7 +69,8 @@ const Onboarding = () => {
   const [loaded, setLoaded] = useState(false);
   const [docs, setDocs] = useState<DocRow[]>([]);
   const [uploadingCat, setUploadingCat] = useState<DocCategory | null>(null);
-  const [cnpjLookup, setCnpjLookup] = useState<"idle" | "loading" | "found" | "notfound">("idle");
+  const [cnpjLookup, setCnpjLookup] = useState<"idle" | "loading" | "found" | "notfound" | "network">("idle");
+  const [cnpjLookupError, setCnpjLookupError] = useState<string | null>(null);
   const fileInputs = useRef<Record<string, HTMLInputElement | null>>({});
 
   const cnpjDigits = onlyDigits(data.cnpj ?? "");
@@ -80,18 +81,30 @@ const Onboarding = () => {
   const handleCnpjChange = (v: string) => {
     setData((d) => ({ ...d, cnpj: formatCnpj(v) }));
     setCnpjLookup("idle");
+    setCnpjLookupError(null);
   };
 
   const handleCnpjLookup = async () => {
     if (!cnpjValid) return;
     setCnpjLookup("loading");
-    const info = await lookupCnpj(cnpjDigits);
-    if (!info) {
-      setCnpjLookup("notfound");
-      toast.error("CNPJ não encontrado na Receita.");
+    setCnpjLookupError(null);
+    const result = await lookupCnpj(cnpjDigits);
+    const nowIso = new Date().toISOString();
+
+    if (!result.ok) {
+      setCnpjLookup(result.reason === "notfound" ? "notfound" : "network");
+      setCnpjLookupError(result.message);
+      setData((d) => ({
+        ...d,
+        cnpj_lookup: { queried_at: nowIso, cnpj: data.cnpj ?? "", status: result.reason, message: result.message },
+      }));
+      toast.error(result.message);
       return;
     }
+
+    const info = result.data;
     setCnpjLookup("found");
+    setCnpjLookupError(null);
     setData((d) => ({
       ...d,
       company_name: d.company_name || info.razao_social || info.nome_fantasia || "",
@@ -104,6 +117,12 @@ const Onboarding = () => {
       district: d.district || info.bairro || "",
       city: d.city || info.municipio || "",
       state: d.state || info.uf || "",
+      cnpj_lookup: {
+        queried_at: nowIso,
+        cnpj: data.cnpj ?? "",
+        status: "found",
+        razao_social: info.razao_social ?? info.nome_fantasia ?? null,
+      },
     }));
     toast.success(`Empresa encontrada: ${info.razao_social ?? info.nome_fantasia}`);
   };
