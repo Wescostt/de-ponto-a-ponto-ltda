@@ -302,13 +302,50 @@ const Onboarding = () => {
           {/* Step content */}
           {current.key === "empresa" && (
             <div className="space-y-4">
-              <div><Label>Nome da empresa</Label><Input value={data.company_name ?? ""} onChange={(e) => set("company_name", e.target.value)} placeholder="Razão social" /></div>
-              <div className="grid md:grid-cols-2 gap-4">
-                <div><Label>CNPJ</Label><Input value={data.cnpj ?? ""} onChange={(e) => set("cnpj", e.target.value)} placeholder="00.000.000/0000-00" /></div>
-                <div><Label>Responsável (RH/DP)</Label><Input value={data.contact_name ?? ""} onChange={(e) => set("contact_name", e.target.value)} placeholder="Nome do contato principal" /></div>
+              <div>
+                <Label>CNPJ</Label>
+                <div className="flex gap-2">
+                  <div className="relative flex-1">
+                    <Input
+                      value={data.cnpj ?? ""}
+                      onChange={(e) => handleCnpjChange(e.target.value)}
+                      onBlur={() => { if (cnpjValid && cnpjLookup === "idle") handleCnpjLookup(); }}
+                      placeholder="00.000.000/0000-00"
+                      inputMode="numeric"
+                      maxLength={18}
+                      className={cn(
+                        "pr-9",
+                        cnpjInvalid && "border-destructive focus-visible:ring-destructive",
+                        cnpjValid && "border-primary/50"
+                      )}
+                    />
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                      {cnpjLookup === "loading" && <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />}
+                      {cnpjLookup !== "loading" && cnpjValid && <CheckCircle2 className="w-4 h-4 text-primary" />}
+                      {cnpjInvalid && <AlertCircle className="w-4 h-4 text-destructive" />}
+                    </div>
+                  </div>
+                  <Button type="button" variant="outline" onClick={handleCnpjLookup} disabled={!cnpjValid || cnpjLookup === "loading"}>
+                    <Search className="w-4 h-4 mr-2" /> Buscar
+                  </Button>
+                </div>
+                {cnpjInvalid && <p className="text-xs text-destructive mt-1">CNPJ inválido — verifique os dígitos.</p>}
+                {cnpjPartial && <p className="text-xs text-muted-foreground mt-1">Continue digitando…</p>}
+                {cnpjValid && cnpjLookup === "idle" && <p className="text-xs text-muted-foreground mt-1">Clique em Buscar para preencher os dados automaticamente.</p>}
+                {cnpjLookup === "found" && <p className="text-xs text-primary mt-1">Dados preenchidos a partir da Receita.</p>}
+                {cnpjLookup === "notfound" && <p className="text-xs text-destructive mt-1">CNPJ não encontrado — preencha manualmente.</p>}
+              </div>
+              <div>
+                <Label>Razão social</Label>
+                <Input value={data.company_name ?? ""} onChange={(e) => set("company_name", e.target.value)} placeholder="Nome empresarial registrado" />
+              </div>
+              <div>
+                <Label>Responsável (RH/DP)</Label>
+                <Input value={data.contact_name ?? ""} onChange={(e) => set("contact_name", e.target.value)} placeholder="Nome do contato principal" />
               </div>
             </div>
           )}
+
 
           {current.key === "estrutura" && (
             <div className="space-y-4">
