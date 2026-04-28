@@ -88,6 +88,15 @@ const Onboarding = () => {
     setData((d) => ({
       ...d,
       company_name: d.company_name || info.razao_social || info.nome_fantasia || "",
+      trade_name: d.trade_name || info.nome_fantasia || "",
+      email: d.email || info.email || "",
+      phone: d.phone || info.ddd_telefone_1 || "",
+      cep: d.cep || info.cep || "",
+      address: d.address || info.logradouro || "",
+      number: d.number || info.numero || "",
+      district: d.district || info.bairro || "",
+      city: d.city || info.municipio || "",
+      state: d.state || info.uf || "",
     }));
     toast.success(`Empresa encontrada: ${info.razao_social ?? info.nome_fantasia}`);
   };
