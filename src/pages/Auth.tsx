@@ -44,7 +44,7 @@ const Auth = () => {
     try {
       if (mode === "signin") {
         const v = signInSchema.parse({ email: form.email, password: form.password });
-        const { error } = await supabase.auth.signInWithPassword(v);
+        const { error } = await supabase.auth.signInWithPassword({ email: v.email, password: v.password });
         if (error) throw error;
         toast.success("Bem-vindo de volta.");
         navigate("/portal");
