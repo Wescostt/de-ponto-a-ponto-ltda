@@ -30,6 +30,13 @@ type Data = {
   control_type?: string;
   needs?: string;
   notes?: string;
+  cnpj_lookup?: {
+    queried_at: string;
+    cnpj: string;
+    status: "found" | "notfound" | "network" | "invalid";
+    razao_social?: string | null;
+    message?: string;
+  };
 };
 
 type DocCategory = "contrato_social" | "cnpj_card" | "folha_modelo" | "outros";
