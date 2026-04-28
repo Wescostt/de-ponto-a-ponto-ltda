@@ -445,6 +445,7 @@ export type Database = {
         Returns: boolean
       }
       is_approved: { Args: { _user_id: string }; Returns: boolean }
+      is_valid_cnpj: { Args: { _cnpj: string }; Returns: boolean }
     }
     Enums: {
       account_status: "pending" | "approved" | "rejected"
