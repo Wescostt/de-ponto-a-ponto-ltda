@@ -151,7 +151,7 @@ const Onboarding = () => {
   // ---------- Step completion ----------
   const completion = useMemo(() => {
     const checks: Record<string, boolean> = {
-      empresa: !!(data.company_name && data.cnpj && data.contact_name),
+      empresa: !!(data.company_name && cnpjValid && data.contact_name),
       estrutura: !!data.employees_count,
       controle: !!data.control_type,
       necessidades: !!data.needs,
