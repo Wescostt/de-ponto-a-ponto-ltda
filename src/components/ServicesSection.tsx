@@ -1,40 +1,37 @@
 import { motion } from "framer-motion";
+import { Clock, Search, Scan, Users } from "lucide-react";
 
 const services = [
   {
     num: "01",
     title: "Controle de Ponto Digital",
     description: "Soluções para registro e gestão de jornada com interface moderna, clareza operacional e suporte próximo.",
-    icon: "🕐",
+    Icon: Clock,
   },
   {
     num: "02",
     title: "Auditoria Mensal",
     description: "Acompanhamento preventivo para identificar inconsistências e apoiar um fechamento mais seguro.",
-    icon: "🔍",
+    Icon: Search,
   },
   {
     num: "03",
     title: "Equipamentos e REP-P Facial",
     description: "Instalação e suporte de equipamentos modernos para uma rotina de marcação mais eficiente e segura.",
-    icon: "📱",
+    Icon: Scan,
   },
   {
     num: "04",
     title: "Treinamento e Suporte",
     description: "Implantação com apoio humano, orientações práticas e acompanhamento real da operação do cliente.",
-    icon: "🤝",
+    Icon: Users,
   },
 ];
 
 const ServicesSection = () => {
   return (
     <section id="solucoes" style={{ padding: "112px 0", position: "relative", background: "#020617" }}>
-      {/* Abertura para vídeo/animação de fundo */}
-      {/* <video className="section-video-bg" autoPlay muted loop playsInline src="/seu-video.mp4" />
-          <div className="media-overlay" /> */}
-
-      <div style={{ maxWidth: "1280px", margin: "0 auto", padding: "0 clamp(24px,5vw,80px)", position: "relative", zIndex: 10 }}>
+      <div style={{ maxWidth: "1280px", margin: "0 auto", padding: "0 clamp(24px,5vw,80px)" }}>
         <motion.div
           initial={{ opacity: 0, y: 24 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -61,21 +58,27 @@ const ServicesSection = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.1 }}
+              whileHover={{ borderColor: "rgba(59,130,246,0.3)", boxShadow: "0 0 32px rgba(59,130,246,0.12), 0 24px 80px rgba(0,0,0,0.4)" }}
               style={{
-                background: "linear-gradient(180deg, rgba(15,23,42,0.88), rgba(2,6,23,0.96))",
-                border: "1px solid rgba(148,163,184,0.10)",
+                background: "linear-gradient(180deg, #0B1020 0%, #060d1f 100%)",
+                border: "1px solid rgba(255,255,255,0.07)",
                 borderRadius: "24px",
                 padding: "32px",
                 boxShadow: "0 24px 80px rgba(0,0,0,0.3)",
-                backdropFilter: "blur(18px)",
                 transition: "border-color 0.3s, box-shadow 0.3s",
                 cursor: "default",
               }}
-              whileHover={{ borderColor: "rgba(59,130,246,0.3)", boxShadow: "0 0 32px rgba(59,130,246,0.15), 0 24px 80px rgba(0,0,0,0.4)" }}
             >
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "20px" }}>
-                <span style={{ fontSize: "28px" }}>{s.icon}</span>
-                <span style={{ color: "rgba(59,130,246,0.25)", fontSize: "32px", fontWeight: 800 }}>{s.num}</span>
+              <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "20px" }}>
+                <div style={{
+                  width: "44px", height: "44px", borderRadius: "12px",
+                  background: "rgba(59,130,246,0.1)",
+                  border: "1px solid rgba(59,130,246,0.2)",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                }}>
+                  <s.Icon size={20} color="#3B82F6" strokeWidth={1.5} />
+                </div>
+                <span style={{ color: "rgba(59,130,246,0.2)", fontSize: "28px", fontWeight: 800 }}>{s.num}</span>
               </div>
               <h3 style={{ color: "#F8FAFC", fontWeight: 600, fontSize: "16px", marginBottom: "10px", lineHeight: 1.35 }}>{s.title}</h3>
               <p style={{ color: "#64748B", fontSize: "13px", lineHeight: 1.7 }}>{s.description}</p>
