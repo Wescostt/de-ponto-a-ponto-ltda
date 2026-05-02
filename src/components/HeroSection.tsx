@@ -28,7 +28,7 @@ const HeroSection = () => {
           objectPosition: "center right",
           zIndex: 0,
         }}
-        src="/notebook-deponto.mp4"
+        src="/hero-video.mp4"
       />
 
       {/* Overlay diagonal — escurece esquerda, preserva vídeo à direita */}
