@@ -10,8 +10,6 @@ const stats = [
 const HeroSection = () => {
   return (
     <section className="relative min-h-screen flex items-center pt-20 overflow-hidden">
-
-      {/* Vídeo de fundo */}
       <video
         autoPlay
         muted
@@ -20,13 +18,8 @@ const HeroSection = () => {
         className="absolute inset-0 w-full h-full object-cover z-0"
         src="/hero-video.mp4"
       />
-
-      {/* Overlay escuro para legibilidade */}
       <div className="absolute inset-0 bg-black/70 z-10" />
-
-      {/* Gradiente sutil por cima */}
       <div className="absolute inset-0 bg-gradient-to-br from-background/60 via-background/40 to-secondary/20 z-10" />
-
       <div className="relative z-20 container mx-auto px-6">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           <div>
@@ -39,7 +32,6 @@ const HeroSection = () => {
               <span className="w-8 h-px bg-primary" />
               Mais de 30 anos de experiência no controle de jornada
             </motion.p>
-
             <motion.h1
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
@@ -49,7 +41,6 @@ const HeroSection = () => {
               Tecnologia e suporte real para uma{" "}
               <span className="text-gradient">gestão de ponto mais segura.</span>
             </motion.h1>
-
             <motion.p
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -59,7 +50,6 @@ const HeroSection = () => {
               A De Ponto a Ponto LTDA une equipamentos modernos, auditoria mensal, implantação especializada
               e suporte técnico humano para entregar mais controle, previsibilidade e segurança operacional ao RH e ao DP.
             </motion.p>
-
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -68,7 +58,7 @@ const HeroSection = () => {
             >
               
                 href="#contato"
-                className="px-7 py-3 rounded-full bg-primary text-primary-foreground font-semibold text-sm hover:bg-primary/90 transition-all glow-navy text-center"
+                className="px-7 py-3 rounded-full bg-primary text-primary-foreground font-semibold text-sm hover:bg-primary/90 transition-all text-center"
               >
                 Solicitar proposta
               </a>
@@ -79,7 +69,6 @@ const HeroSection = () => {
                 Ver experiência real
               </a>
             </motion.div>
-
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -94,7 +83,6 @@ const HeroSection = () => {
               ))}
             </motion.div>
           </div>
-
           <motion.div
             initial={{ opacity: 0, x: 40 }}
             animate={{ opacity: 1, x: 0 }}
@@ -112,7 +100,6 @@ const HeroSection = () => {
                   src="/hero-video.mp4"
                 />
               </div>
-
               <div className="grid grid-cols-2 gap-3">
                 <div className="bg-white/10 rounded-xl p-4 border border-white/10">
                   <p className="text-white text-xs font-semibold mb-1">Operação em campo</p>
@@ -123,9 +110,8 @@ const HeroSection = () => {
                   <p className="text-white/60 text-[10px]">Acompanhamento real do cliente</p>
                 </div>
               </div>
-
               <div className="flex items-center gap-3 bg-white/5 rounded-lg p-3 border border-white/10">
-                <div className="w-2 h-2 rounded-full bg-primary animate-pulse-glow" />
+                <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
                 <div>
                   <p className="text-white text-xs font-medium">Estrutura completa</p>
                   <p className="text-white/60 text-[10px]">Equipamento + implantação + auditoria + suporte</p>
