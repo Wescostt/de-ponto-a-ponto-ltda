@@ -28,20 +28,20 @@ const HeroSection = () => {
           objectPosition: "center right",
           zIndex: 0,
         }}
-        src="/hero-video.mp4"
+        src="/notebook-deponto.mp4"
       />
 
-      {/* Overlay escuro suave sobre o vídeo — mantém legibilidade sem apagar */}
+      {/* Overlay diagonal — escurece esquerda, preserva vídeo à direita */}
       <div
         style={{
           position: "absolute",
           inset: 0,
-          background: "linear-gradient(105deg, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.45) 45%, rgba(0,0,0,0.15) 100%)",
+          background: "linear-gradient(105deg, rgba(0,0,0,0.78) 0%, rgba(0,0,0,0.50) 45%, rgba(0,0,0,0.12) 100%)",
           zIndex: 1,
         }}
       />
 
-      {/* CONTEÚDO — glass card flutuando sobre o vídeo */}
+      {/* GLASS PANEL — conteúdo esquerdo */}
       <div
         className="relative w-full"
         style={{
@@ -50,11 +50,8 @@ const HeroSection = () => {
           paddingBottom: "64px",
           paddingLeft: "clamp(24px, 6vw, 96px)",
           paddingRight: "clamp(24px, 6vw, 96px)",
-          display: "flex",
-          alignItems: "center",
         }}
       >
-        {/* Glass panel — esquerda */}
         <motion.div
           initial={{ opacity: 0, x: -32 }}
           animate={{ opacity: 1, x: 0 }}
@@ -62,6 +59,7 @@ const HeroSection = () => {
           style={{
             maxWidth: "560px",
             width: "100%",
+            position: "relative",
             backgroundColor: "rgba(255, 255, 255, 0.04)",
             backdropFilter: "blur(28px) saturate(160%)",
             WebkitBackdropFilter: "blur(28px) saturate(160%)",
@@ -71,7 +69,7 @@ const HeroSection = () => {
             boxShadow: "0 8px 48px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.08)",
           }}
         >
-          {/* Brilho sutil no topo do glass */}
+          {/* Brilho sutil no topo */}
           <div
             style={{
               position: "absolute",
@@ -89,12 +87,7 @@ const HeroSection = () => {
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "10px",
-              marginBottom: "20px",
-            }}
+            style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "20px" }}
           >
             <span
               className="bg-primary"
@@ -102,12 +95,7 @@ const HeroSection = () => {
             />
             <span
               className="text-primary"
-              style={{
-                fontSize: "10px",
-                letterSpacing: "0.22em",
-                textTransform: "uppercase",
-                fontWeight: 500,
-              }}
+              style={{ fontSize: "10px", letterSpacing: "0.22em", textTransform: "uppercase", fontWeight: 500 }}
             >
               Mais de 30 anos de experiência no controle de jornada
             </span>
@@ -180,7 +168,6 @@ const HeroSection = () => {
                 fontSize: "13px",
                 textDecoration: "none",
                 display: "inline-block",
-                transition: "border-color 0.2s",
                 backgroundColor: "rgba(255,255,255,0.05)",
               }}
             >
@@ -195,29 +182,26 @@ const HeroSection = () => {
             transition={{ delay: 0.84 }}
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(4, 1fr)",
-              gap: "4px",
+              gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
+              gap: "16px",
               marginBottom: "24px",
               paddingBottom: "24px",
               borderBottom: "1px solid rgba(255,255,255,0.07)",
             }}
           >
             {stats.map((s) => (
-              <div key={s.value}>
-                <p
-                  className="text-primary"
-                  style={{ fontWeight: 700, fontSize: "14px", marginBottom: "3px" }}
-                >
+              <div key={s.value} style={{ minWidth: 0 }}>
+                <p className="text-primary" style={{ fontWeight: 700, fontSize: "14px", marginBottom: "4px", whiteSpace: "nowrap" }}>
                   {s.value}
                 </p>
-                <p style={{ color: "rgba(255,255,255,0.38)", fontSize: "11px", lineHeight: 1.4 }}>
+                <p style={{ color: "rgba(255,255,255,0.38)", fontSize: "11px", lineHeight: 1.4, whiteSpace: "normal" }}>
                   {s.label}
                 </p>
               </div>
             ))}
           </motion.div>
 
-          {/* Cards integrados */}
+          {/* Cards */}
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
@@ -229,14 +213,7 @@ const HeroSection = () => {
               padding: "14px",
             }}
           >
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "1fr 1fr",
-                gap: "8px",
-                marginBottom: "8px",
-              }}
-            >
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px", marginBottom: "8px" }}>
               {[
                 { title: "Operação em campo", sub: "Instalação e suporte técnico" },
                 { title: "Atendimento consultivo", sub: "Acompanhamento real do cliente" },
@@ -253,9 +230,7 @@ const HeroSection = () => {
                   <p style={{ color: "#ffffff", fontSize: "12px", fontWeight: 600, marginBottom: "4px" }}>
                     {card.title}
                   </p>
-                  <p style={{ color: "rgba(255,255,255,0.38)", fontSize: "11px" }}>
-                    {card.sub}
-                  </p>
+                  <p style={{ color: "rgba(255,255,255,0.38)", fontSize: "11px" }}>{card.sub}</p>
                 </div>
               ))}
             </div>
@@ -275,9 +250,7 @@ const HeroSection = () => {
                 style={{ width: "7px", height: "7px", borderRadius: "50%", flexShrink: 0 }}
               />
               <div>
-                <p style={{ color: "#ffffff", fontSize: "12px", fontWeight: 500 }}>
-                  Estrutura completa
-                </p>
+                <p style={{ color: "#ffffff", fontSize: "12px", fontWeight: 500 }}>Estrutura completa</p>
                 <p style={{ color: "rgba(255,255,255,0.38)", fontSize: "11px" }}>
                   Equipamento + implantação + auditoria + suporte
                 </p>
