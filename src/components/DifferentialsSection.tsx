@@ -100,7 +100,7 @@ export default function DiferenciaisSection() {
           width: "100%",
           height: "100%",
           objectFit: "cover",
-          objectPosition: "30% center",
+          objectPosition: "48% center",
           zIndex: 1,
           pointerEvents: "none",
           userSelect: "none",
