@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 
 // ─── Icons ────────────────────────────────────────────────────────────────────
@@ -75,7 +74,7 @@ export default function DiferenciaisSection() {
       ref={sectionRef}
       className="relative w-full min-h-screen overflow-hidden bg-[#020817]"
     >
-      {/* ── z-0: subtle dot/grid texture ───────────────────────────────────── */}
+      {/* ── z-0: subtle grid texture ────────────────────────────────────────── */}
       <div
         className="absolute inset-0 z-0 opacity-[0.025] pointer-events-none"
         style={{
@@ -87,71 +86,78 @@ export default function DiferenciaisSection() {
 
       {/* ── z-1: BACKGROUND IMAGE — fills entire section ───────────────────── */}
       {/*
-        <Image fill> with a positioned parent (`absolute inset-0`) makes Next.js
-        render a native <img> stretched to cover every pixel of this section.
-        object-cover preserves aspect ratio; object-[30%_center] keeps the
-        tablet screen visible on the left while the right side fades under the card.
-        Adjust the x-percentage (30%) if the tablet shifts too far off-screen.
+        Pure CSS approach: absolute inset-0, width/height 100%, object-cover.
+        object-position keeps the tablet centred-left so it stays visible
+        while the right edge fades behind the card.
       */}
-      <div className="absolute inset-0 z-[1] pointer-events-none">
-        <Image
-          src="/tab3-deponto.png"
-          alt="Secullum Ponto Virtual"
-          fill
-          priority
-          sizes="100vw"
-          className="object-cover object-[30%_center]"
-        />
-      </div>
-
-      {/* ── z-2: integration overlays — light touch only ────────────────────── */}
-      {/* Right fade: creates legibility space behind the card */}
-      <div
-        className="absolute inset-0 z-[2] pointer-events-none"
+      <img
+        src="/tab3-deponto.png"
+        alt="Secullum Ponto Virtual"
+        aria-hidden="true"
         style={{
+          position: "absolute",
+          inset: 0,
+          width: "100%",
+          height: "100%",
+          objectFit: "cover",
+          objectPosition: "30% center",
+          zIndex: 1,
+          pointerEvents: "none",
+          userSelect: "none",
+        }}
+      />
+
+      {/* ── z-2: integration overlays — light, image stays strong ───────────── */}
+      {/* Right-side gradient: creates reading legibility behind the card */}
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          zIndex: 2,
           background:
             "linear-gradient(to right, rgba(2,8,23,0.0) 0%, rgba(2,8,23,0.05) 38%, rgba(2,8,23,0.48) 66%, rgba(2,8,23,0.82) 82%, #020817 97%)",
         }}
       />
       {/* Top + bottom edge fades */}
       <div
-        className="absolute inset-0 z-[2] pointer-events-none"
+        className="absolute inset-0 pointer-events-none"
         style={{
+          zIndex: 2,
           background:
             "linear-gradient(to bottom, rgba(2,8,23,0.38) 0%, transparent 10%, transparent 88%, rgba(2,8,23,0.55) 100%)",
         }}
       />
 
-      {/* ── z-2: subtle right-side glow ─────────────────────────────────────── */}
+      {/* ── z-2: subtle right corner glow ───────────────────────────────────── */}
       <div
-        className="absolute bottom-0 right-0 w-[45%] h-[55%] pointer-events-none z-[2]"
+        className="absolute bottom-0 right-0 w-[45%] h-[55%] pointer-events-none"
         style={{
+          zIndex: 2,
           background:
             "radial-gradient(ellipse 65% 65% at 100% 100%, rgba(37,99,235,0.06) 0%, transparent 70%)",
         }}
       />
 
-      {/* ── z-3: FLOATING CARD ── right side ────────────────────────────────── */}
-      <div className="relative z-[3] min-h-screen flex items-center justify-end px-4 sm:px-8 lg:px-14 xl:px-20 py-20">
+      {/* ── z-3: FLOATING CARD — right side ─────────────────────────────────── */}
+      <div
+        className="relative min-h-screen flex items-center justify-end px-4 sm:px-8 lg:px-14 xl:px-20 py-20"
+        style={{ zIndex: 3 }}
+      >
         <div
           className={`
             w-full max-w-[480px] xl:max-w-[520px]
-            rounded-[28px]
-            border border-white/[0.09]
             p-7 sm:p-9
             transition-all duration-700 ease-out
             ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}
           `}
           style={{
-            /* Pure dark glass — no blue tint, mirrors Hero panel */
-            background: "rgba(6, 9, 18, 0.58)",
-            backdropFilter: "blur(28px)",
-            WebkitBackdropFilter: "blur(28px)",
+            background: "rgba(10, 14, 26, 0.88)",
+            backdropFilter: "blur(20px)",
+            WebkitBackdropFilter: "blur(20px)",
+            border: "1px solid rgba(255, 255, 255, 0.10)",
+            borderRadius: "24px",
             boxShadow:
-              "0 0 0 1px rgba(255,255,255,0.07), " +
-              "0 24px 80px rgba(0,0,0,0.55), " +
-              "inset 0 1px 0 rgba(255,255,255,0.06), " +
-              "0 0 60px rgba(37,99,235,0.05)",
+              "0 32px 80px rgba(0, 0, 0, 0.6), " +
+              "inset 0 1px 0 rgba(255, 255, 255, 0.08)",
           }}
         >
           {/* Label */}
@@ -196,14 +202,15 @@ export default function DiferenciaisSection() {
               <div
                 key={i}
                 className={`
-                  flex items-start gap-4 rounded-xl p-3.5
-                  border border-white/[0.06]
+                  flex items-start gap-4 p-3.5
                   transition-all duration-500 ease-out
-                  hover:border-blue-500/20 hover:bg-white/[0.03]
+                  hover:bg-white/[0.04]
                   ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}
                 `}
                 style={{
-                  background: "rgba(255,255,255,0.03)",
+                  background: "rgba(255, 255, 255, 0.05)",
+                  border: "1px solid rgba(255, 255, 255, 0.08)",
+                  borderRadius: "14px",
                   transitionDelay: `${200 + i * 80}ms`,
                 }}
               >
