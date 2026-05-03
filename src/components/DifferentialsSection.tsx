@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 
 // ─── Icons ────────────────────────────────────────────────────────────────────
@@ -63,7 +64,7 @@ export default function DiferenciaisSection() {
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => { if (entry.isIntersecting) setVisible(true); },
-      { threshold: 0.1 }
+      { threshold: 0.08 }
     );
     if (sectionRef.current) observer.observe(sectionRef.current);
     return () => observer.disconnect();
@@ -72,11 +73,11 @@ export default function DiferenciaisSection() {
   return (
     <section
       ref={sectionRef}
-      className="relative w-full min-h-screen overflow-hidden bg-[#03060f]"
+      className="relative w-full min-h-screen overflow-hidden bg-[#020817]"
     >
-      {/* ── Background subtle grid ─────────────────────────────────────────── */}
+      {/* ── z-0: subtle dot/grid texture ───────────────────────────────────── */}
       <div
-        className="absolute inset-0 opacity-[0.03] pointer-events-none"
+        className="absolute inset-0 z-0 opacity-[0.025] pointer-events-none"
         style={{
           backgroundImage:
             "linear-gradient(rgba(59,130,246,1) 1px, transparent 1px), linear-gradient(90deg, rgba(59,130,246,1) 1px, transparent 1px)",
@@ -84,96 +85,92 @@ export default function DiferenciaisSection() {
         }}
       />
 
-      {/* ── Deep radial glow behind image ──────────────────────────────────── */}
-
-      {/* ── PRODUCT IMAGE — dominant, left/center ──────────────────────────── */}
-      <div className="absolute inset-0 flex items-center justify-start pointer-events-none">
-        {/* Image container: takes ~65% width, full height */}
-        <div className="relative w-[65%] h-full flex items-center justify-center">
-          {/* Soft right-edge fade so image blends into card */}
-          <div
-            className="absolute inset-0 z-10 pointer-events-none"
-            style={{
-              background:
-                "linear-gradient(to right, transparent 40%, rgba(3,6,15,0.55) 70%, rgba(3,6,15,0.92) 90%, #03060f 100%)",
-            }}
-          />
-          {/* Bottom fade */}
-          <div
-            className="absolute inset-0 z-10 pointer-events-none"
-            style={{
-              background:
-                "linear-gradient(to top, rgba(3,6,15,0.7) 0%, transparent 30%)",
-            }}
-          />
-          {/* Top fade */}
-          <div
-            className="absolute inset-0 z-10 pointer-events-none"
-            style={{
-              background:
-                "linear-gradient(to bottom, rgba(3,6,15,0.4) 0%, transparent 20%)",
-            }}
-          />
-
-          {/*
-            IMPORTANT: Replace the src below with your actual product image path.
-            e.g. src="/images/secullum-ponto-virtual.png"
-            The image renders at natural size, object-contain keeps it undistorted.
-          */}
-          <img
-            src="/tab3-deponto.png"
-            alt="Secullum Ponto Virtual"
-            className="relative z-0 w-full h-full object-contain object-center"
-            style={{
-              maxHeight: "92vh",
-              filter: "drop-shadow(0 0 60px rgba(37,99,235,0.18))",
-            }}
-            // Fallback placeholder colour while image loads
-            onError={(e) => {
-              (e.currentTarget as HTMLImageElement).style.opacity = "0.15";
-            }}
-          />
-        </div>
+      {/* ── z-1: BACKGROUND IMAGE — fills entire section ───────────────────── */}
+      {/*
+        <Image fill> with a positioned parent (`absolute inset-0`) makes Next.js
+        render a native <img> stretched to cover every pixel of this section.
+        object-cover preserves aspect ratio; object-[30%_center] keeps the
+        tablet screen visible on the left while the right side fades under the card.
+        Adjust the x-percentage (30%) if the tablet shifts too far off-screen.
+      */}
+      <div className="absolute inset-0 z-[1] pointer-events-none">
+        <Image
+          src="/tab3-deponto.png"
+          alt="Secullum Ponto Virtual"
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover object-[30%_center]"
+        />
       </div>
 
-      {/* ── FLOATING CARD — right side ─────────────────────────────────────── */}
-      <div className="relative z-20 min-h-screen flex items-center justify-end px-4 sm:px-8 lg:px-16 py-20">
+      {/* ── z-2: integration overlays — light touch only ────────────────────── */}
+      {/* Right fade: creates legibility space behind the card */}
+      <div
+        className="absolute inset-0 z-[2] pointer-events-none"
+        style={{
+          background:
+            "linear-gradient(to right, rgba(2,8,23,0.0) 0%, rgba(2,8,23,0.05) 38%, rgba(2,8,23,0.48) 66%, rgba(2,8,23,0.82) 82%, #020817 97%)",
+        }}
+      />
+      {/* Top + bottom edge fades */}
+      <div
+        className="absolute inset-0 z-[2] pointer-events-none"
+        style={{
+          background:
+            "linear-gradient(to bottom, rgba(2,8,23,0.38) 0%, transparent 10%, transparent 88%, rgba(2,8,23,0.55) 100%)",
+        }}
+      />
+
+      {/* ── z-2: subtle right-side glow ─────────────────────────────────────── */}
+      <div
+        className="absolute bottom-0 right-0 w-[45%] h-[55%] pointer-events-none z-[2]"
+        style={{
+          background:
+            "radial-gradient(ellipse 65% 65% at 100% 100%, rgba(37,99,235,0.06) 0%, transparent 70%)",
+        }}
+      />
+
+      {/* ── z-3: FLOATING CARD ── right side ────────────────────────────────── */}
+      <div className="relative z-[3] min-h-screen flex items-center justify-end px-4 sm:px-8 lg:px-14 xl:px-20 py-20">
         <div
           className={`
-            w-full max-w-[520px] xl:max-w-[560px]
-            rounded-2xl border border-white/[0.08]
+            w-full max-w-[480px] xl:max-w-[520px]
+            rounded-[28px]
+            border border-white/[0.09]
             p-7 sm:p-9
             transition-all duration-700 ease-out
             ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}
           `}
           style={{
-            background: "rgba(8, 10, 16, 0.62)",
-            backdropFilter: "blur(24px)",
-            WebkitBackdropFilter: "blur(24px)",
+            /* Pure dark glass — no blue tint, mirrors Hero panel */
+            background: "rgba(6, 9, 18, 0.58)",
+            backdropFilter: "blur(28px)",
+            WebkitBackdropFilter: "blur(28px)",
             boxShadow:
-              "0 0 0 1px rgba(255,255,255,0.07), 0 24px 80px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.05)",
+              "0 0 0 1px rgba(255,255,255,0.07), " +
+              "0 24px 80px rgba(0,0,0,0.55), " +
+              "inset 0 1px 0 rgba(255,255,255,0.06), " +
+              "0 0 60px rgba(37,99,235,0.05)",
           }}
         >
           {/* Label */}
           <div className="flex items-center gap-2 mb-5">
             <span className="block w-6 h-[2px] bg-blue-500 rounded-full" />
-            <span
-              className="text-[10px] font-semibold tracking-[0.22em] uppercase"
-              style={{ color: "#3b82f6" }}
-            >
+            <span className="text-[10px] font-semibold tracking-[0.22em] uppercase text-blue-400">
               Diferenciais
             </span>
           </div>
 
           {/* Heading */}
           <h2
-            className="text-[1.85rem] sm:text-[2.1rem] font-extrabold leading-[1.15] text-white mb-4"
+            className="text-[1.8rem] sm:text-[2rem] font-extrabold leading-[1.15] text-white mb-4"
             style={{ letterSpacing: "-0.02em" }}
           >
             Tecnologia que aproxima sua empresa da{" "}
             <span
               style={{
-                background: "linear-gradient(90deg,#60a5fa,#3b82f6)",
+                background: "linear-gradient(90deg,#93c5fd,#3b82f6)",
                 WebkitBackgroundClip: "text",
                 WebkitTextFillColor: "transparent",
               }}
@@ -183,7 +180,7 @@ export default function DiferenciaisSection() {
           </h2>
 
           {/* Supporting text */}
-          <p className="text-sm leading-relaxed text-white/55 mb-7">
+          <p className="text-sm leading-relaxed text-white/50 mb-7">
             Com o Ponto Virtual, sua empresa acompanha registros, presença e
             operações de forma prática, moderna e segura — com suporte próximo,
             implantação orientada e acompanhamento feito por quem entende do
@@ -191,18 +188,18 @@ export default function DiferenciaisSection() {
           </p>
 
           {/* Divider */}
-          <div className="h-px w-full bg-white/[0.06] mb-6" />
+          <div className="h-px w-full bg-white/[0.07] mb-5" />
 
-          {/* Mini-cards grid */}
-          <div className="flex flex-col gap-3">
+          {/* Mini-cards */}
+          <div className="flex flex-col gap-2.5">
             {diferenciais.map((item, i) => (
               <div
                 key={i}
                 className={`
-                  flex items-start gap-4 rounded-xl p-4
+                  flex items-start gap-4 rounded-xl p-3.5
                   border border-white/[0.06]
                   transition-all duration-500 ease-out
-                  hover:border-blue-500/20 hover:bg-blue-950/20
+                  hover:border-blue-500/20 hover:bg-white/[0.03]
                   ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}
                 `}
                 style={{
@@ -212,10 +209,10 @@ export default function DiferenciaisSection() {
               >
                 {/* Icon circle */}
                 <div
-                  className="flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center"
+                  className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center"
                   style={{
-                    background: "rgba(59,130,246,0.1)",
-                    border: "1px solid rgba(59,130,246,0.18)",
+                    background: "rgba(59,130,246,0.09)",
+                    border: "1px solid rgba(59,130,246,0.16)",
                   }}
                 >
                   {item.icon}
@@ -223,10 +220,10 @@ export default function DiferenciaisSection() {
 
                 {/* Text */}
                 <div>
-                  <p className="text-[0.82rem] font-semibold text-white/90 leading-snug mb-0.5">
+                  <p className="text-[0.8rem] font-semibold text-white/90 leading-snug mb-0.5">
                     {item.title}
                   </p>
-                  <p className="text-[0.75rem] text-white/42 leading-relaxed">
+                  <p className="text-[0.73rem] text-white/40 leading-relaxed">
                     {item.desc}
                   </p>
                 </div>
@@ -235,20 +232,11 @@ export default function DiferenciaisSection() {
           </div>
 
           {/* Bottom accent bar */}
-          <div className="mt-6 flex gap-2">
-            <div className="h-[2px] flex-1 rounded-full bg-gradient-to-r from-blue-600/60 to-transparent" />
+          <div className="mt-6">
+            <div className="h-[2px] w-full rounded-full bg-gradient-to-r from-blue-600/50 to-transparent" />
           </div>
         </div>
       </div>
-
-      {/* ── Corner glow on card side ───────────────────────────────────────── */}
-      <div
-        className="absolute bottom-0 right-0 w-[40%] h-[40%] pointer-events-none z-10"
-        style={{
-          background:
-            "radial-gradient(ellipse 60% 60% at 100% 100%, rgba(37,99,235,0.07) 0%, transparent 70%)",
-        }}
-      />
     </section>
   );
 }
