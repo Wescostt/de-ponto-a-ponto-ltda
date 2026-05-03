@@ -84,31 +84,41 @@ export default function DiferenciaisSection() {
         }}
       />
 
-      {/* ── z-1: BACKGROUND IMAGE — fills entire section ───────────────────── */}
+      {/* ── z-1: BACKGROUND IMAGE ───────────────────────────────────────────── */}
       {/*
-        Pure CSS approach: absolute inset-0, width/height 100%, object-cover.
-        object-position keeps the tablet centred-left so it stays visible
-        while the right edge fades behind the card.
+        translateX controls where the tablet sits horizontally with true precision.
+        -62% = tablet centered-left. Move toward -50% to shift right, -70% for left.
+        width: 130% scales the image larger than the viewport so the tablet is big.
+        Tweak these two values to dial in the exact framing you want.
       */}
-      <img
-        src="/tab3-deponto.png"
-        alt="Secullum Ponto Virtual"
-        aria-hidden="true"
+      <div
         style={{
           position: "absolute",
           inset: 0,
-          width: "100%",
-          height: "100%",
-          objectFit: "cover",
-          objectPosition: "58% center",
           zIndex: 1,
+          overflow: "hidden",
           pointerEvents: "none",
-          userSelect: "none",
         }}
-      />
+      >
+        <img
+          src="/tab3-deponto.png"
+          alt=""
+          aria-hidden="true"
+          style={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-62%, -50%)",
+            width: "130%",
+            height: "auto",
+            maxWidth: "none",
+            userSelect: "none",
+          }}
+        />
+      </div>
 
-      {/* ── z-2: integration overlays — light, image stays strong ───────────── */}
-      {/* Right-side gradient: creates reading legibility behind the card */}
+      {/* ── z-2: integration overlays ───────────────────────────────────────── */}
+      {/* Right-side gradient — creates legibility space behind the card */}
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
