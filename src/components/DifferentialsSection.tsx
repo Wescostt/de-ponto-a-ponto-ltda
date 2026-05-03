@@ -85,15 +85,6 @@ export default function DiferenciaisSection() {
       />
 
       {/* ── Deep radial glow behind image ──────────────────────────────────── */}
-      <div className="absolute inset-0 pointer-events-none">
-        <div
-          className="absolute left-0 top-0 w-[70%] h-full"
-          style={{
-            background:
-              "radial-gradient(ellipse 80% 70% at 30% 50%, rgba(14,30,60,0.6) 0%, transparent 70%)",
-          }}
-        />
-      </div>
 
       {/* ── PRODUCT IMAGE — dominant, left/center ──────────────────────────── */}
       <div className="absolute inset-0 flex items-center justify-start pointer-events-none">
@@ -130,7 +121,7 @@ export default function DiferenciaisSection() {
             The image renders at natural size, object-contain keeps it undistorted.
           */}
           <img
-            src="/images/device-secullum.png"
+            src="/tab3-deponto.png"
             alt="Secullum Ponto Virtual"
             className="relative z-0 w-full h-full object-contain object-center"
             style={{
@@ -156,11 +147,11 @@ export default function DiferenciaisSection() {
             ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}
           `}
           style={{
-            background:
-              "linear-gradient(145deg, rgba(8,16,36,0.96) 0%, rgba(5,12,28,0.98) 100%)",
-            backdropFilter: "blur(20px)",
+            background: "rgba(8, 10, 16, 0.62)",
+            backdropFilter: "blur(24px)",
+            WebkitBackdropFilter: "blur(24px)",
             boxShadow:
-              "0 0 0 1px rgba(59,130,246,0.08), 0 8px 32px rgba(0,0,0,0.5), 0 0 80px rgba(37,99,235,0.07)",
+              "0 0 0 1px rgba(255,255,255,0.07), 0 24px 80px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.05)",
           }}
         >
           {/* Label */}
@@ -215,7 +206,7 @@ export default function DiferenciaisSection() {
                   ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}
                 `}
                 style={{
-                  background: "rgba(255,255,255,0.025)",
+                  background: "rgba(255,255,255,0.03)",
                   transitionDelay: `${200 + i * 80}ms`,
                 }}
               >
