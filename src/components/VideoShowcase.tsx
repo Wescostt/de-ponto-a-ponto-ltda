@@ -19,7 +19,7 @@ const VideoShowcase = () => {
   return (
     <section
       className="relative w-full overflow-hidden"
-      style={{ backgroundColor: "#000000", paddingTop: "80px", paddingBottom: "80px" }}
+      style={{ backgroundColor: "#020617", paddingTop: "80px", paddingBottom: "80px" }}
     >
       {/* Divisor superior suave */}
       <div
@@ -91,7 +91,7 @@ const VideoShowcase = () => {
               overflow: "hidden",
               border: "1px solid rgba(255,255,255,0.08)",
               boxShadow: "0 32px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.04)",
-              background: "#0a0a0a",
+              background: "#0B1020",
             }}
           >
             {/* Brilho sutil no topo da moldura */}
@@ -131,7 +131,7 @@ const VideoShowcase = () => {
                 left: 0,
                 right: 0,
                 height: "120px",
-                background: "linear-gradient(to top, rgba(0,0,0,0.5), transparent)",
+                background: "linear-gradient(to top, rgba(2,6,23,0.5), transparent)",
                 zIndex: 1,
                 pointerEvents: "none",
               }}
@@ -180,7 +180,7 @@ const VideoShowcase = () => {
               left: "10%",
               right: "10%",
               height: "40px",
-              background: "radial-gradient(ellipse, rgba(255,255,255,0.04) 0%, transparent 70%)",
+              background: "radial-gradient(ellipse, rgba(59,130,246,0.06) 0%, transparent 70%)",
               filter: "blur(8px)",
               pointerEvents: "none",
             }}
@@ -224,7 +224,7 @@ const VideoShowcase = () => {
             <div
               key={i}
               style={{
-                backgroundColor: "#000000",
+                backgroundColor: "#030712",
                 padding: "28px 24px",
                 borderRight: i < 2 ? "1px solid rgba(255,255,255,0.06)" : "none",
               }}
