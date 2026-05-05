@@ -1,4 +1,4 @@
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
 import { UserPlus, ScanFace, ClipboardCheck, LayoutDashboard, FileBarChart2 } from "lucide-react";
 
@@ -12,12 +12,20 @@ const steps = [
 
 const JourneySection = () => {
   const [activeStep, setActiveStep] = useState(0);
+  const [ledKey, setLedKey] = useState(0); // muda a cada clique para re-triggar animação
+
+  const handleStep = (i: number) => {
+    setActiveStep(i);
+    setLedKey((k) => k + 1); // reinicia o efeito LED
+  };
 
   return (
     <section style={{ padding: "112px 0", position: "relative", background: "#030712", overflow: "hidden" }}>
       <div style={{ position: "absolute", top: "40%", left: "50%", transform: "translate(-50%,-50%)", width: "800px", height: "400px", background: "radial-gradient(ellipse, rgba(59,130,246,0.05) 0%, transparent 70%)", pointerEvents: "none" }} />
 
       <div style={{ maxWidth: "1280px", margin: "0 auto", padding: "0 clamp(24px,5vw,80px)", position: "relative", zIndex: 10 }}>
+
+        {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 24 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -51,7 +59,7 @@ const JourneySection = () => {
           {steps.map((step, i) => (
             <button
               key={i}
-              onClick={() => setActiveStep(i)}
+              onClick={() => handleStep(i)}
               style={{
                 padding: "10px 20px", borderRadius: "999px", cursor: "pointer",
                 fontSize: "13px", fontWeight: 500, transition: "all 0.25s",
@@ -73,14 +81,13 @@ const JourneySection = () => {
             background: "repeating-linear-gradient(90deg, #3B82F6 0px, #3B82F6 6px, transparent 6px, transparent 14px)",
             filter: "drop-shadow(0 0 6px rgba(59,130,246,0.5))", zIndex: 0,
           }} />
-
           <div style={{ display: "flex", justifyContent: "space-between", position: "relative", zIndex: 1 }}>
             {steps.map((step, i) => {
               const isActive = activeStep === i;
               return (
                 <motion.div
                   key={i}
-                  onClick={() => setActiveStep(i)}
+                  onClick={() => handleStep(i)}
                   style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "14px", cursor: "pointer", flex: 1 }}
                 >
                   <div style={{
@@ -108,39 +115,90 @@ const JourneySection = () => {
           </div>
         </div>
 
-        {/* Card ativo */}
-        <motion.div
-          key={activeStep}
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.35 }}
-          style={{
-            background: "linear-gradient(180deg, #0B1020 0%, #060d1f 100%)",
-            border: "1px solid rgba(59,130,246,0.18)",
-            borderRadius: "20px", padding: "32px 36px",
-            boxShadow: "0 0 40px rgba(59,130,246,0.06), 0 24px 80px rgba(0,0,0,0.4)",
-            display: "flex", alignItems: "center", gap: "24px",
-          }}
-        >
+        {/* Card com LED pulsante */}
+        <div style={{ position: "relative" }}>
+
+          {/* ── LED sweep — dispara a cada clique ─────────────────────────── */}
+          <AnimatePresence>
+            <motion.div
+              key={`led-${ledKey}`}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: [0, 1, 1, 0] }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 1.2, times: [0, 0.1, 0.7, 1], ease: "easeInOut" }}
+              style={{
+                position: "absolute",
+                inset: 0,
+                borderRadius: "20px",
+                pointerEvents: "none",
+                zIndex: 0,
+                // Glow externo — borda inteira brilha
+                boxShadow:
+                  "0 0 0 1px rgba(59,130,246,0.55), " +
+                  "0 0 18px 2px rgba(59,130,246,0.45), " +
+                  "0 0 45px 8px rgba(59,130,246,0.18)",
+              }}
+            />
+          </AnimatePresence>
+
+          {/* ── Faixa LED superior (corre da esquerda p/ direita) ─────────── */}
           <div style={{
-            width: "60px", height: "60px", borderRadius: "16px", flexShrink: 0,
-            background: "rgba(59,130,246,0.1)", border: "1px solid rgba(59,130,246,0.2)",
-            display: "flex", alignItems: "center", justifyContent: "center",
+            position: "absolute", top: 0, left: 0, right: 0,
+            height: "1px", borderRadius: "20px 20px 0 0",
+            overflow: "hidden", zIndex: 1, pointerEvents: "none",
           }}>
-            {(() => { const Icon = steps[activeStep].Icon; return <Icon size={26} color="#3B82F6" strokeWidth={1.5} />; })()}
+            <AnimatePresence>
+              <motion.div
+                key={`sweep-${ledKey}`}
+                initial={{ x: "-100%", opacity: 0 }}
+                animate={{ x: ["−100%", "0%", "100%"], opacity: [0, 1, 0] }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.9, ease: "easeInOut" }}
+                style={{
+                  position: "absolute", inset: 0,
+                  background: "linear-gradient(90deg, transparent 0%, rgba(59,130,246,0.9) 50%, transparent 100%)",
+                  filter: "blur(1px)",
+                }}
+              />
+            </AnimatePresence>
           </div>
-          <div>
-            <p style={{ color: "#3B82F6", fontSize: "11px", fontWeight: 500, letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: "8px" }}>
-              Etapa {steps[activeStep].num} de {steps.length}
-            </p>
-            <h3 style={{ color: "#F8FAFC", fontSize: "18px", fontWeight: 700, marginBottom: "8px" }}>
-              {steps[activeStep].label}
-            </h3>
-            <p style={{ color: "#64748B", fontSize: "14px", lineHeight: 1.75 }}>
-              {steps[activeStep].desc}
-            </p>
-          </div>
-        </motion.div>
+
+          {/* ── Card ativo ─────────────────────────────────────────────────── */}
+          <motion.div
+            key={activeStep}
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.35 }}
+            style={{
+              position: "relative", zIndex: 2,
+              background: "linear-gradient(180deg, #0B1020 0%, #060d1f 100%)",
+              border: "1px solid rgba(59,130,246,0.18)",
+              borderRadius: "20px", padding: "32px 36px",
+              boxShadow: "0 0 40px rgba(59,130,246,0.06), 0 24px 80px rgba(0,0,0,0.4)",
+              display: "flex", alignItems: "center", gap: "24px",
+            }}
+          >
+            <div style={{
+              width: "60px", height: "60px", borderRadius: "16px", flexShrink: 0,
+              background: "rgba(59,130,246,0.1)", border: "1px solid rgba(59,130,246,0.2)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+            }}>
+              {(() => { const Icon = steps[activeStep].Icon; return <Icon size={26} color="#3B82F6" strokeWidth={1.5} />; })()}
+            </div>
+            <div>
+              <p style={{ color: "#3B82F6", fontSize: "11px", fontWeight: 500, letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: "8px" }}>
+                Etapa {steps[activeStep].num} de {steps.length}
+              </p>
+              <h3 style={{ color: "#F8FAFC", fontSize: "18px", fontWeight: 700, marginBottom: "8px" }}>
+                {steps[activeStep].label}
+              </h3>
+              <p style={{ color: "#64748B", fontSize: "14px", lineHeight: 1.75 }}>
+                {steps[activeStep].desc}
+              </p>
+            </div>
+          </motion.div>
+        </div>
+
       </div>
     </section>
   );
