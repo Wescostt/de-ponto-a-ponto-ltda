@@ -120,7 +120,7 @@ const VideoShowcase = () => {
                 aspectRatio: "16/9",
                 objectFit: "cover",
               }}
-              src="/notebook-deponto.mp4"
+              src="/calculos-deponto.mp4"
             />
 
             {/* Overlay gradiente inferior suave */}
