@@ -17,6 +17,7 @@ import Tickets from "./pages/portal/Tickets";
 import Forum from "./pages/portal/Forum";
 import Aprovacoes from "./pages/portal/admin/Aprovacoes";
 import Empresas from "./pages/portal/admin/Empresas";
+import Treinamentos from "./pages/portal/Treinamentos";
 
 const queryClient = new QueryClient();
 
@@ -38,6 +39,7 @@ const App = () => (
               <Route path="auditorias" element={<Auditorias />} />
               <Route path="tickets" element={<Tickets />} />
               <Route path="forum" element={<Forum />} />
+              <Route path="treinamentos" element={<Treinamentos />} />
               <Route path="admin/aprovacoes" element={<Aprovacoes />} />
               <Route path="admin/empresas" element={<Empresas />} />
             </Route>

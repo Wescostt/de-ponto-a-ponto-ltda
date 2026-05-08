@@ -1,4 +1,6 @@
-import { LayoutDashboard, Image as ImageIcon, FileText, LifeBuoy, ClipboardList, FileCheck2, MessageSquare, ShieldCheck, Sparkles } from "lucide-react";
+import { LayoutDashboard, Image as ImageIcon, FileText, LifeBuoy, ClipboardList, FileCheck2, MessageSquare, ShieldCheck, Sparkles,
+  GraduationCap,
+} from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import {
   Sidebar,
@@ -15,18 +17,19 @@ import { useAuth } from "@/hooks/useAuth";
 import logo from "@/assets/logo.png";
 
 const items = [
-  { title: "Dashboard", url: "/portal", icon: LayoutDashboard, end: true },
-  { title: "Onboarding", url: "/portal/onboarding", icon: Sparkles },
-  { title: "Galeria", url: "/portal/galeria", icon: ImageIcon },
-  { title: "Biblioteca", url: "/portal/biblioteca", icon: FileText },
-  { title: "Auditorias", url: "/portal/auditorias", icon: FileCheck2 },
-  { title: "Tickets", url: "/portal/tickets", icon: LifeBuoy },
-  { title: "Fórum", url: "/portal/forum", icon: MessageSquare },
+  { title: "Dashboard",   url: "/portal",              icon: LayoutDashboard, end: true },
+  { title: "Onboarding",  url: "/portal/onboarding",   icon: Sparkles },
+  { title: "Galeria",     url: "/portal/galeria",       icon: ImageIcon },
+  { title: "Biblioteca",  url: "/portal/biblioteca",    icon: FileText },
+  { title: "Auditorias",  url: "/portal/auditorias",    icon: FileCheck2 },
+  { title: "Tickets",     url: "/portal/tickets",       icon: LifeBuoy },
+  { title: "Fórum",       url: "/portal/forum",         icon: MessageSquare },
+  { title: "Treinamentos", url: "/portal/treinamentos", icon: GraduationCap },
 ];
 
 const adminItems = [
   { title: "Aprovações", url: "/portal/admin/aprovacoes", icon: ShieldCheck },
-  { title: "Empresas", url: "/portal/admin/empresas", icon: ClipboardList },
+  { title: "Empresas",   url: "/portal/admin/empresas",   icon: ClipboardList },
 ];
 
 export function PortalSidebar() {
