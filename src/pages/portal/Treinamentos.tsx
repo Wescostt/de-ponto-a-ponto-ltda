@@ -21,9 +21,9 @@ import {
   STATUS_LABELS,
   LEVEL_LABELS,
   getTrainingStats,
-} from "./trainingsData";
-import { TrainingCard } from "./TrainingCard";
-import { TrainingDetail } from "./TrainingDetail";
+} from "../../components/treinamentos/trainingsData";
+import { TrainingCard } from "../../components/treinamentos/TrainingCard";
+import { TrainingDetail } from "../../components/treinamentos/TrainingDetail";
 
 // ── Stat Card ────────────────────────────────────────────────────────────────
 const StatCard = ({
@@ -159,7 +159,6 @@ const Treinamentos = () => {
           </p>
         </div>
 
-        {/* New training button — prepared for future integration */}
         <button
           style={{
             display: "flex", alignItems: "center", gap: "8px",
@@ -216,7 +215,6 @@ const Treinamentos = () => {
           display: "flex", flexWrap: "wrap", gap: "12px", alignItems: "center",
         }}
       >
-        {/* Search */}
         <div style={{ position: "relative", flex: "1 1 220px" }}>
           <Search size={15} color="#64748b" style={{ position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)", pointerEvents: "none" }} />
           <input
@@ -231,7 +229,6 @@ const Treinamentos = () => {
           />
         </div>
 
-        {/* Filters */}
         <div style={{ display: "flex", alignItems: "center", gap: "6px", color: "#64748b" }}>
           <Filter size={14} />
         </div>
@@ -242,21 +239,18 @@ const Treinamentos = () => {
           onChange={(v) => setFilterCategory(v as TrainingCategory | "")}
           options={Object.entries(CATEGORY_LABELS).map(([k, v]) => ({ value: k, label: v }))}
         />
-
         <FilterSelect
           label="Status"
           value={filterStatus}
           onChange={(v) => setFilterStatus(v as TrainingStatus | "")}
           options={Object.entries(STATUS_LABELS).map(([k, v]) => ({ value: k, label: v }))}
         />
-
         <FilterSelect
           label="Nível"
           value={filterLevel}
           onChange={(v) => setFilterLevel(v as TrainingLevel | "")}
           options={Object.entries(LEVEL_LABELS).map(([k, v]) => ({ value: k, label: v }))}
         />
-
         <FilterSelect
           label="Público"
           value={filterAudience}
