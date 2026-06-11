@@ -29,7 +29,7 @@ CREATE POLICY "Admin vê eventos de login"
   ON public.auth_login_events
   FOR SELECT
   USING (
-    public.has_role(auth.uid(), 'admin')
+    public.has_role('admin', auth.uid())
     OR public.is_gestor_master(auth.uid())
   );
 
