@@ -30,6 +30,14 @@ type Client = {
   representante_cpf: string | null;
 };
 
+export const PLAN_OPTIONS = [
+  "Secullum Ponto Web Basic",
+  "Secullum Ponto Web Pro",
+  "Secullum Ponto Web Ultimate",
+  "Secullum Ponto Web + reconhecimento facial",
+  "Plano personalizado"
+];
+
 // --- NUMBER TO WORDS PORTUGUESE HELPERS ---
 const UNIDADES = ["", "um", "dois", "três", "quatro", "cinco", "seis", "sete", "oito", "nove"];
 const DEZENAS_10 = ["dez", "onze", "doze", "treze", "quatorze", "quinze", "dezesseis", "dezessete", "dezoito", "dezenove"];

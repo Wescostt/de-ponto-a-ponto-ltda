@@ -110,11 +110,15 @@ const ContratosMaster = () => {
     navigate(`/portal/master/contratos/novo?previewId=${c.id}`);
   };
 
-  const filteredContracts = contracts.filter((c) => {
+  const filteredContracts = (contracts ?? []).filter((c) => {
+    if (!c) return false;
+    const num = c.contract_number || "";
+    const name = c.clients?.razao_social || "";
+    const plano = c.plano_contratado || "";
     return (
-      c.contract_number.toLowerCase().includes(search.toLowerCase()) ||
-      (c.clients?.razao_social && c.clients.razao_social.toLowerCase().includes(search.toLowerCase())) ||
-      c.plano_contratado.toLowerCase().includes(search.toLowerCase())
+      num.toLowerCase().includes(search.toLowerCase()) ||
+      name.toLowerCase().includes(search.toLowerCase()) ||
+      plano.toLowerCase().includes(search.toLowerCase())
     );
   });
 
@@ -161,10 +165,10 @@ const ContratosMaster = () => {
                 </td>
                 <td className="p-4 max-w-[180px] truncate">{c.plano_contratado}</td>
                 <td className="p-4 font-semibold">
-                  {c.valor_anual.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                  {c.valor_anual ? Number(c.valor_anual).toLocaleString("pt-BR", { style: "currency", currency: "BRL" }) : "-"}
                 </td>
                 <td className="p-4 text-xs font-mono">
-                  {new Date(c.vigencia_inicio).toLocaleDateString("pt-BR")} - {new Date(c.vigencia_fim).toLocaleDateString("pt-BR")}
+                  {c.vigencia_inicio ? new Date(c.vigencia_inicio).toLocaleDateString("pt-BR") : "-"} - {c.vigencia_fim ? new Date(c.vigencia_fim).toLocaleDateString("pt-BR") : "-"}
                 </td>
                 <td className="p-4">
                   <span className={`px-2 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider ${
