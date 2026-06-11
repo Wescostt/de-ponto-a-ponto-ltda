@@ -18,6 +18,11 @@ import Forum from "./pages/portal/Forum";
 import Aprovacoes from "./pages/portal/admin/Aprovacoes";
 import Empresas from "./pages/portal/admin/Empresas";
 import Treinamentos from "./pages/portal/Treinamentos";
+import DashboardMaster from "./pages/portal/master/DashboardMaster";
+import ClientesMaster from "./pages/portal/master/ClientesMaster";
+import ContratosMaster from "./pages/portal/master/ContratosMaster";
+import NovoContratoMaster from "./pages/portal/master/NovoContratoMaster";
+import AuditoriaMaster from "./pages/portal/master/AuditoriaMaster";
 
 const queryClient = new QueryClient();
 
@@ -42,6 +47,11 @@ const App = () => (
               <Route path="treinamentos" element={<Treinamentos />} />
               <Route path="admin/aprovacoes" element={<Aprovacoes />} />
               <Route path="admin/empresas" element={<Empresas />} />
+              <Route path="master/dashboard" element={<DashboardMaster />} />
+              <Route path="master/clientes" element={<ClientesMaster />} />
+              <Route path="master/contratos" element={<ContratosMaster />} />
+              <Route path="master/contratos/novo" element={<NovoContratoMaster />} />
+              <Route path="master/auditoria" element={<AuditoriaMaster />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>

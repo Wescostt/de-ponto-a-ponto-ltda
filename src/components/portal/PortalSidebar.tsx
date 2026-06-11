@@ -32,10 +32,17 @@ const adminItems = [
   { title: "Empresas",   url: "/portal/admin/empresas",   icon: ClipboardList },
 ];
 
+const masterItems = [
+  { title: "Dashboard Master", url: "/portal/master/dashboard", icon: LayoutDashboard },
+  { title: "Clientes",         url: "/portal/master/clientes",  icon: ClipboardList },
+  { title: "Contratos",        url: "/portal/master/contratos", icon: FileText },
+  { title: "Auditoria",        url: "/portal/master/auditoria", icon: FileCheck2 },
+];
+
 export function PortalSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
-  const { isAdmin } = useAuth();
+  const { isAdmin, isGestorMaster } = useAuth();
   const location = useLocation();
 
   const linkCls = ({ isActive }: { isActive: boolean }) =>
@@ -68,6 +75,26 @@ export function PortalSidebar() {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+
+        {isGestorMaster && (
+          <SidebarGroup>
+            <SidebarGroupLabel>Portal Master</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {masterItems.map((item) => (
+                  <SidebarMenuItem key={item.url}>
+                    <SidebarMenuButton asChild>
+                      <NavLink to={item.url} className={linkCls}>
+                        <item.icon className="w-4 h-4 shrink-0" />
+                        {!collapsed && <span className="text-sm">{item.title}</span>}
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
 
         {isAdmin && (
           <SidebarGroup>

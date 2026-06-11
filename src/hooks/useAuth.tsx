@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useState, ReactNode } from "react
 import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 
-export type AppRole = "admin" | "gestor" | "funcionario";
+export type AppRole = "admin" | "gestor" | "funcionario" | "gestor_master";
 export type AccountStatus = "pending" | "approved" | "rejected";
 
 export interface Profile {
@@ -25,6 +25,7 @@ interface AuthContextValue {
   isApproved: boolean;
   isAdmin: boolean;
   isGestor: boolean;
+  isGestorMaster: boolean;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
 }
@@ -88,6 +89,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         isApproved: profile?.status === "approved",
         isAdmin: roles.includes("admin"),
         isGestor: roles.includes("gestor"),
+        isGestorMaster: profile?.email === "depontoapontocomercial@gmail.com" || roles.includes("gestor_master"),
         signOut,
         refreshProfile,
       }}
