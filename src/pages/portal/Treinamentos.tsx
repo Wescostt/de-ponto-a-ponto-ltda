@@ -19,6 +19,7 @@ import { Progress } from "@/components/ui/progress";
 import { useLessonHeartbeat } from "@/hooks/useLessonHeartbeat";
 import { TreinamentoQuizzes } from "@/components/treinamentos/TreinamentoQuizzes";
 import { TreinamentoCertificates } from "@/components/treinamentos/TreinamentoCertificates";
+import { MOCK_TRAININGS } from "@/components/treinamentos/trainingsData";
 
 // ── Badges Auxiliares ────────────────────────────────────────────────────────
 const StatusBadge = ({ status }: { status: string }) => {
@@ -78,8 +79,37 @@ export default function Treinamentos() {
   const { activeSeconds, scrollPercent } = useLessonHeartbeat({
     enrollmentId: activeEnrollment?.id,
     lessonId: selectedLesson?.id,
-    enabled: !!selectedLesson && !!activeEnrollment && activeLessonTab === "content"
+    enabled: !!selectedLesson && !!activeEnrollment && activeLessonTab === "content" && !selectedCourse?.is_mock
   });
+
+  // Local state para cursos mockados
+  const [mockActiveSeconds, setMockActiveSeconds] = useState(0);
+  const [mockScrollPercent, setMockScrollPercent] = useState(0);
+
+  useEffect(() => {
+    if (selectedCourse?.is_mock && selectedLesson && activeLessonTab === "content") {
+      setMockActiveSeconds(0);
+      const interval = setInterval(() => {
+        setMockActiveSeconds((prev) => prev + 1);
+      }, 1000);
+      return () => clearInterval(interval);
+    }
+  }, [selectedCourse, selectedLesson, activeLessonTab]);
+
+  useEffect(() => {
+    if (selectedCourse?.is_mock && selectedLesson && activeLessonTab === "content") {
+      setMockScrollPercent(0);
+      const handleScroll = () => {
+        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+        const scrollHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+        const pct = scrollHeight > 0 ? Math.round((scrollTop / scrollHeight) * 100) : 100;
+        setMockScrollPercent((prev) => Math.max(prev, Math.min(pct, 100)));
+      };
+      window.addEventListener("scroll", handleScroll, { passive: true });
+      handleScroll();
+      return () => window.removeEventListener("scroll", handleScroll);
+    }
+  }, [selectedCourse, selectedLesson, activeLessonTab]);
 
   // Carregar dados principais
   const loadInitialData = async () => {
@@ -94,7 +124,29 @@ export default function Treinamentos() {
         .order("sort_order", { ascending: true });
 
       if (cErr) throw cErr;
-      setCourses(cData || []);
+
+      // Mapear cursos mockados para o formato de exibição
+      const mappedMockCourses = MOCK_TRAININGS.map(mt => ({
+        id: mt.id,
+        slug: mt.id,
+        title: mt.title,
+        subtitle: mt.objective,
+        description: mt.description,
+        estimated_minutes: parseInt(mt.estimatedTime) || 60,
+        status: mt.status,
+        sort_order: 100,
+        is_mock: true,
+        modules: mt.modules,
+        prerequisites: mt.prerequisites,
+        objective: mt.objective,
+        audience: mt.audience
+      }));
+
+      const dbCourses = cData || [];
+      const dbSlugs = new Set(dbCourses.map((c: any) => c.slug));
+      const activeMockCourses = mappedMockCourses.filter(mc => !dbSlugs.has(mc.slug));
+
+      setCourses([...dbCourses, ...activeMockCourses]);
 
       // 2. Buscar matrículas do usuário
       const { data: eData, error: eErr } = await supabase
@@ -107,6 +159,15 @@ export default function Treinamentos() {
       (eData || []).forEach((e) => {
         eMap[e.course_id] = e;
       });
+
+      // Carregar matrículas mockadas do localStorage
+      MOCK_TRAININGS.forEach((mt) => {
+        const saved = localStorage.getItem(`dpp_mock_enrollment_${mt.id}`);
+        if (saved) {
+          eMap[mt.id] = JSON.parse(saved);
+        }
+      });
+
       setEnrollments(eMap);
 
       // 3. Buscar certificados do usuário
@@ -134,10 +195,93 @@ export default function Treinamentos() {
     loadInitialData();
   }, [user]);
 
+  // Helper para salvar progresso mockado no localStorage
+  const saveMockEnrollment = (courseId: string, enrollment: any) => {
+    localStorage.setItem(`dpp_mock_enrollment_${courseId}`, JSON.stringify(enrollment));
+    setEnrollments(prev => ({ ...prev, [courseId]: enrollment }));
+  };
+
   // Carregar módulos e aulas de um curso selecionado
   const loadCourseDetails = async (course: any) => {
     try {
       setLoading(true);
+      if (course.is_mock) {
+        // Mapear módulos do curso mockado
+        const mockModules = (course.modules || []).map((m: any) => ({
+          id: m.id,
+          course_id: course.id,
+          title: m.title,
+          description: m.description,
+          sort_order: 1,
+        }));
+        setModules(mockModules);
+
+        // Expandir o primeiro módulo
+        if (mockModules.length > 0) {
+          setExpandedModules({ [mockModules[0].id]: true });
+        }
+
+        // Mapear aulas (steps) para cada módulo
+        const lMap: Record<string, any[]> = {};
+        const chkDataMap: Record<string, any> = {};
+
+        (course.modules || []).forEach((m: any) => {
+          lMap[m.id] = (m.steps || []).map((s: any, idx: number) => {
+            const lessonId = `${m.id}_step_${s.id}`;
+            
+            // Mapear checklist do módulo na última etapa
+            if (idx === m.steps.length - 1 && m.checklist && m.checklist.length > 0) {
+              chkDataMap[lessonId] = {
+                id: `chk_${m.id}`,
+                lesson_id: lessonId,
+                training_checklist_items: m.checklist.map((c: string, ci: number) => ({
+                  id: `chk_item_${m.id}_${ci}`,
+                  title: c,
+                  is_required: true,
+                }))
+              };
+            }
+
+            return {
+              id: lessonId,
+              module_id: m.id,
+              slug: s.id,
+              title: s.title,
+              content_type: "leitura",
+              content_md: `## ${s.title}\n\n${s.description}${s.importantNote ? `\n\n### Observação importante\n\n${s.importantNote}` : ""}`,
+              estimated_minutes: 5,
+              required_active_seconds: 10,
+              required_scroll_percent: 70,
+              sort_order: idx + 1,
+              is_required: true,
+              is_published: true,
+              is_mock: true
+            };
+          });
+        });
+
+        setLessons(lMap);
+        setChecklists(chkDataMap);
+
+        // Carregar progresso mockado do localStorage
+        const mockProg = localStorage.getItem(`dpp_mock_progress_${course.id}`);
+        if (mockProg) {
+          setLessonProgress(JSON.parse(mockProg));
+        } else {
+          setLessonProgress({});
+        }
+
+        // Carregar checklist mockado do localStorage
+        const mockChkRes = localStorage.getItem(`dpp_mock_checklist_${course.id}`);
+        if (mockChkRes) {
+          setChecklistResponses(JSON.parse(mockChkRes));
+        } else {
+          setChecklistResponses({});
+        }
+        setLoading(false);
+        return;
+      }
+
       // Módulos
       const { data: mData, error: mErr } = await supabase
         .from("training_modules" as any)
@@ -312,6 +456,23 @@ export default function Treinamentos() {
   // Matricular usuário em um curso
   const handleEnroll = async (courseId: string) => {
     if (!user) return;
+    const course = courses.find(c => c.id === courseId);
+    if (course?.is_mock) {
+      const mockEnrollment = {
+        id: `mock_enrollment_${courseId}`,
+        course_id: courseId,
+        user_id: user.id,
+        status: "in_progress",
+        progress_percent: 0,
+        started_at: new Date().toISOString(),
+      };
+      saveMockEnrollment(courseId, mockEnrollment);
+      toast({
+        title: "Matrícula realizada!",
+        description: "Treinamento iniciado localmente.",
+      });
+      return;
+    }
     try {
       const { data, error } = await supabase
         .from("training_enrollments" as any)
@@ -377,6 +538,12 @@ export default function Treinamentos() {
 
   // Preencher itens de checklist
   const handleChecklistItemToggle = async (itemId: string, checked: boolean) => {
+    if (selectedCourse?.is_mock) {
+      const updated = { ...checklistResponses, [itemId]: checked };
+      setChecklistResponses(updated);
+      localStorage.setItem(`dpp_mock_checklist_${selectedCourse.id}`, JSON.stringify(updated));
+      return;
+    }
     if (!activeEnrollment || !user) return;
     try {
       // Salvar a resposta no Supabase
@@ -408,6 +575,37 @@ export default function Treinamentos() {
 
   // Concluir Aula
   const handleCompleteLesson = async () => {
+    if (selectedCourse?.is_mock && selectedLesson && activeEnrollment) {
+      const newProgress = {
+        ...lessonProgress,
+        [selectedLesson.id]: {
+          status: "completed",
+          completed_at: new Date().toISOString(),
+        }
+      };
+      setLessonProgress(newProgress);
+      localStorage.setItem(`dpp_mock_progress_${selectedCourse.id}`, JSON.stringify(newProgress));
+
+      // Calcular progresso do curso mockado
+      const totalLessonsList = Object.values(lessons).flat();
+      const completedCount = totalLessonsList.filter(l => newProgress[l.id]?.status === "completed").length;
+      const progressPercent = totalLessonsList.length > 0 ? (completedCount / totalLessonsList.length) * 100 : 0;
+
+      const updatedEnrollment = {
+        ...activeEnrollment,
+        progress_percent: progressPercent,
+        status: progressPercent >= 100 ? "completed" : "in_progress",
+        completed_at: progressPercent >= 100 ? new Date().toISOString() : null,
+      };
+
+      saveMockEnrollment(selectedCourse.id, updatedEnrollment);
+
+      toast({
+        title: "Aula Concluída!",
+        description: "Progresso computado localmente.",
+      });
+      return;
+    }
     if (!activeEnrollment || !selectedLesson) return;
     try {
       const { data, error } = await supabase.rpc("training_complete_lesson", {
@@ -460,7 +658,7 @@ export default function Treinamentos() {
           user_id: user.id,
           company_id: profile?.company_id,
           certificate_title: "Certificado de Aptidão Operacional",
-          certificate_text: `Certificamos que ${profile?.full_name || "Colaborador"}, vinculado à empresa ${profile?.company_id || "De Ponto a Ponto"}, concluiu o Treinamento Secullum Ponto Web Ultimate promovido pela De Ponto a Ponto Ltda., demonstrando aptidão operacional para utilizar o sistema de ponto no ambiente da empresa, conforme conteúdo aplicado, checklists práticos e avaliação final.`,
+          certificate_text: `Certificamos que ${profile?.full_name || "Colaborador"}, vinculado à empresa ${profile?.company_id || "De Ponto a Ponto"}, concluiu o Treinamento Secullum Ponto Web promovido pela De Ponto a Ponto Ltda., demonstrando aptidão operacional para utilizar o sistema de ponto no ambiente da empresa, conforme conteúdo aplicado, checklists práticos e avaliação final.`,
           requested_at: new Date().toISOString(),
         });
 
@@ -646,7 +844,7 @@ export default function Treinamentos() {
                       <div className="text-xs text-muted-foreground">{e.profiles?.email}</div>
                     </td>
                     <td className="p-4 text-muted-foreground">{e.companies?.name || "Nenhuma"}</td>
-                    <td className="p-4 font-medium">Secullum Ponto Web Ultimate</td>
+                    <td className="p-4 font-medium">Secullum Ponto Web</td>
                     <td className="p-4 w-48">
                       <div className="flex items-center gap-2">
                         <Progress value={Number(e.progress_percent)} className="h-1.5 flex-1" />
@@ -727,10 +925,11 @@ export default function Treinamentos() {
     const isLessonComplete = lessonProgress[selectedLesson.id]?.status === "completed";
 
     // Cálculo das pendências para liberação do botão Concluir
-    const currentHeartbeatSeconds = activeSeconds;
+    const currentHeartbeatSeconds = selectedCourse?.is_mock ? mockActiveSeconds : activeSeconds;
+    const currentScrollPercent = selectedCourse?.is_mock ? mockScrollPercent : scrollPercent;
     const requiredSeconds = selectedLesson.required_active_seconds || 60;
     const hasEnoughTime = currentHeartbeatSeconds >= requiredSeconds;
-    const hasEnoughScroll = scrollPercent >= (selectedLesson.required_scroll_percent || 70);
+    const hasEnoughScroll = currentScrollPercent >= (selectedLesson.required_scroll_percent || 70);
 
     const checklistItems = checklistData?.training_checklist_items || [];
     const requiredChecklistItems = checklistItems.filter((i: any) => i.is_required);
@@ -797,6 +996,12 @@ export default function Treinamentos() {
           {/* Aba Conteúdo */}
           {activeLessonTab === "content" && (
             <div className="bg-card border border-border/50 rounded-2xl p-6 prose prose-invert max-w-none">
+              {selectedLesson.content_type === "video" && (
+                <div className="mb-4 p-4 bg-blue-500/10 border border-blue-500/20 text-blue-400 rounded-xl text-sm flex items-center gap-2">
+                  <HelpCircle size={16} />
+                  <span>Esta funcionalidade de vídeo será implementada na próxima versão. Por favor, utilize os textos explicativos e checklists práticos para concluir este treinamento.</span>
+                </div>
+              )}
               {renderSimpleMD(selectedLesson.content_md)}
             </div>
           )}
@@ -891,7 +1096,7 @@ export default function Treinamentos() {
                 <div className="flex items-center gap-1.5">
                   <CheckCircle size={14} className={hasEnoughScroll ? "text-emerald-400" : "text-slate-500"} />
                   <span className="text-muted-foreground">Leitura:</span>
-                  <span className="font-bold text-foreground">{scrollPercent}% / 70%</span>
+                  <span className="font-bold text-foreground">{currentScrollPercent}% / 70%</span>
                 </div>
                 {requiredChecklistItems.length > 0 && (
                   <div className="flex items-center gap-1.5">

@@ -837,14 +837,14 @@ export const MOCK_TRAININGS: Training[] = [
   },
   {
     id: "training-007",
-    title: "Treinamento Secullum Ponto Web Ultimate — Operação Completa",
-    description: "Curso completo em módulos e aulas práticas para capacitação no sistema Secullum Ponto Web Ultimate. Ideal para gestores de RH/DP e operadores.",
+    title: "Treinamento Secullum Ponto Web — Operação Completa",
+    description: "Curso completo em módulos e aulas práticas para capacitação no sistema Secullum Ponto Web. Ideal para gestores de RH/DP e operadores.",
     category: "secullum_system",
     audience: ["hr", "admin", "client", "support"],
     status: "published",
     level: "intermediate",
     estimatedTime: "12h",
-    objective: "Capacitar operadores e profissionais de RH/DP para gerenciar com total autonomia e conformidade o sistema Secullum Ponto Web Ultimate.",
+    objective: "Capacitar operadores e profissionais de RH/DP para gerenciar com total autonomia e conformidade o sistema Secullum Ponto Web.",
     prerequisites: ["Acesso ao portal De Ponto a Ponto", "Ambiente Secullum Web ativo"],
     resources: [
       {
