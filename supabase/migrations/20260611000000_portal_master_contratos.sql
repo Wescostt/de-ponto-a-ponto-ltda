@@ -1,10 +1,7 @@
 -- =========================================
 -- MODIFY ENUM TYPE public.app_role
 -- =========================================
-ALTER TYPE public.app_role RENAME TO app_role_old;
-CREATE TYPE public.app_role AS ENUM ('admin', 'gestor', 'funcionario', 'gestor_master');
-ALTER TABLE public.user_roles ALTER COLUMN role TYPE public.app_role USING role::text::public.app_role;
-DROP TYPE public.app_role_old;
+ALTER TYPE public.app_role ADD VALUE IF NOT EXISTS 'gestor_master';
 
 -- =========================================
 -- MASTER ALLOWED EMAILS

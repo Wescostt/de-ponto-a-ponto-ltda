@@ -75,7 +75,29 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const signOut = async () => {
+    try {
+      if (user) {
+        await supabase.from("auth_login_events").insert({
+          user_id: user.id,
+          event_type: "logout",
+          user_agent: typeof navigator !== "undefined" ? navigator.userAgent : null,
+          metadata: { email: user.email }
+        });
+      }
+    } catch (err) {
+      console.error("Erro ao registrar logout:", err);
+    }
+
     await supabase.auth.signOut();
+
+    // Limpeza extra para garantir remoção em ambos os storages.
+    Object.keys(localStorage)
+      .filter((key) => key.includes("supabase") || key.includes("sb-"))
+      .forEach((key) => localStorage.removeItem(key));
+
+    Object.keys(sessionStorage)
+      .filter((key) => key.includes("supabase") || key.includes("sb-"))
+      .forEach((key) => sessionStorage.removeItem(key));
   };
 
   return (
