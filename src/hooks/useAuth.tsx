@@ -89,7 +89,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         isApproved: profile?.status === "approved",
         isAdmin: roles.includes("admin"),
         isGestor: roles.includes("gestor"),
-        isGestorMaster: profile?.email === "depontoapontocomercial@gmail.com" || roles.includes("gestor_master"),
+        isGestorMaster: user?.email === "depontoapontocomercial@gmail.com" || roles.includes("gestor_master"),
         signOut,
         refreshProfile,
       }}
