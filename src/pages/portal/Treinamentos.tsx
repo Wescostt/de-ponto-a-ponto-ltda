@@ -201,6 +201,27 @@ export default function Treinamentos() {
     setEnrollments(prev => ({ ...prev, [courseId]: enrollment }));
   };
 
+// Encontrar a aula correspondente em MOCK_TRAININGS
+const findMockLesson = (courseSlug: string, lessonSlug: string, lessonTitle: string) => {
+  const mockCourse = MOCK_TRAININGS.find(c => c.id === courseSlug);
+  if (!mockCourse) return null;
+  for (const m of mockCourse.modules) {
+    const step = m.steps.find(s => s.id === lessonSlug || s.title === lessonTitle);
+    if (step) return step;
+  }
+  return null;
+};
+
+  const isModuleLocked = (moduleIndex: number, currentModules: any[], currentLessons: Record<string, any[]>, currentProgress: Record<string, any>) => {
+    if (moduleIndex === 0) return false;
+    const prevModule = currentModules[moduleIndex - 1];
+    if (!prevModule) return false;
+    const prevModuleLessons = currentLessons[prevModule.id] || [];
+    const prevModuleQuiz = prevModuleLessons.find(l => l.content_type === "modulo_quiz");
+    if (!prevModuleQuiz) return false;
+    return currentProgress[prevModuleQuiz.id]?.status !== "completed";
+  };
+
   // Carregar módulos e aulas de um curso selecionado
   const loadCourseDetails = async (course: any) => {
     try {
@@ -226,7 +247,7 @@ export default function Treinamentos() {
         const chkDataMap: Record<string, any> = {};
 
         (course.modules || []).forEach((m: any) => {
-          lMap[m.id] = (m.steps || []).map((s: any, idx: number) => {
+          const moduleLessonsList = (m.steps || []).map((s: any, idx: number) => {
             const lessonId = `${m.id}_step_${s.id}`;
             
             // Mapear checklist do módulo na última etapa
@@ -258,6 +279,26 @@ export default function Treinamentos() {
               is_mock: true
             };
           });
+
+          // Injetar a aula de questionário ao final de cada módulo
+          const quizLessonId = `quiz_${m.id}`;
+          moduleLessonsList.push({
+            id: quizLessonId,
+            module_id: m.id,
+            slug: `quiz_${m.id}`,
+            title: `Questionário de Fixação — Módulo ${m.title.replace(/Módulo\s*\d+\s*—\s*/gi, "")}`,
+            content_type: "modulo_quiz",
+            content_md: `Responda a este questionário de 5 perguntas para validar seu aprendizado no módulo de ${m.title} e liberar o próximo módulo.`,
+            estimated_minutes: 10,
+            required_active_seconds: 0,
+            required_scroll_percent: 0,
+            sort_order: moduleLessonsList.length + 1,
+            is_required: true,
+            is_published: true,
+            is_mock: true
+          });
+
+          lMap[m.id] = moduleLessonsList;
         });
 
         setLessons(lMap);
@@ -309,7 +350,41 @@ export default function Treinamentos() {
       const lMap: Record<string, any[]> = {};
       (lData || []).forEach((l) => {
         if (!lMap[l.module_id]) lMap[l.module_id] = [];
+        
+        // Enriquecer com conteúdo mockado se content_md estiver vazio
+        if (!l.content_md) {
+          const mockStep = findMockLesson(course.slug, l.slug, l.title);
+          if (mockStep) {
+            l.content_md = `## ${mockStep.title}\n\n${mockStep.description}${mockStep.importantNote ? `\n\n### Observação importante\n\n${mockStep.importantNote}` : ""}`;
+          }
+        }
+        
         lMap[l.module_id].push(l);
+      });
+
+      // Injetar questionário em cada módulo do banco de dados
+      (mData || []).forEach((m: any) => {
+        const moduleLessons = lMap[m.id] || [];
+        const hasQuiz = moduleLessons.some(l => l.content_type === "modulo_quiz");
+        if (!hasQuiz) {
+          const quizLessonId = `quiz_${m.id}`;
+          moduleLessons.push({
+            id: quizLessonId,
+            module_id: m.id,
+            slug: `quiz_${m.id}`,
+            title: `Questionário de Fixação — Módulo ${m.title.replace(/Módulo\s*\d+\s*—\s*/gi, "")}`,
+            content_type: "modulo_quiz",
+            content_md: `Responda a este questionário de 5 perguntas para validar seu aprendizado no módulo de ${m.title} e liberar o próximo módulo.`,
+            estimated_minutes: 10,
+            required_active_seconds: 0,
+            required_scroll_percent: 0,
+            sort_order: moduleLessons.length + 1,
+            is_required: true,
+            is_published: true,
+            is_mock: false
+          });
+          lMap[m.id] = moduleLessons;
+        }
       });
       setLessons(lMap);
 
@@ -321,13 +396,25 @@ export default function Treinamentos() {
           .select("*")
           .eq("enrollment_id", enrollment.id);
 
+        const pMap: Record<string, any> = {};
         if (!pErr && pData) {
-          const pMap: Record<string, any> = {};
           pData.forEach((p) => {
             pMap[p.lesson_id] = p;
           });
-          setLessonProgress(pMap);
         }
+
+        // Mesclar progresso local (que guarda as conclusões dos quizzes do módulo)
+        const mockProg = localStorage.getItem(`dpp_mock_progress_${course.id}`);
+        if (mockProg) {
+          const parsed = JSON.parse(mockProg);
+          Object.keys(parsed).forEach(k => {
+            if (k.startsWith("quiz_") || !pMap[k]) {
+              pMap[k] = parsed[k];
+            }
+          });
+        }
+
+        setLessonProgress(pMap);
 
         // Respostas de checklist
         const { data: chkData, error: chkErr } = await supabase
@@ -388,6 +475,32 @@ export default function Treinamentos() {
 
         if (!error && data) {
           setChecklists((prev: any) => ({ ...prev, [selectedLesson.id]: data }));
+        } else if (selectedCourse) {
+          // Fallback para checklist mockado se o curso tem correspondente em MOCK_TRAININGS
+          const mockCourse = MOCK_TRAININGS.find(c => c.id === selectedCourse.slug || c.id === selectedCourse.id);
+          if (mockCourse) {
+            const mockModule = mockCourse.modules.find(m => m.id === selectedLesson.module_id || selectedLesson.id.startsWith(m.id));
+            if (mockModule && mockModule.checklist && mockModule.checklist.length > 0) {
+              const moduleLessons = lessons[selectedLesson.module_id] || [];
+              const readingLessons = moduleLessons.filter(l => l.content_type !== "modulo_quiz");
+              const isLastReading = readingLessons.length > 0 && readingLessons[readingLessons.length - 1].id === selectedLesson.id;
+              
+              if (isLastReading) {
+                setChecklists((prev: any) => ({
+                  ...prev,
+                  [selectedLesson.id]: {
+                    id: `chk_${mockModule.id}`,
+                    lesson_id: selectedLesson.id,
+                    training_checklist_items: mockModule.checklist!.map((c: string, ci: number) => ({
+                      id: `chk_item_${mockModule.id}_${ci}`,
+                      title: c,
+                      is_required: true,
+                    }))
+                  }
+                }));
+              }
+            }
+          }
         }
       };
 
@@ -575,7 +688,8 @@ export default function Treinamentos() {
 
   // Concluir Aula
   const handleCompleteLesson = async () => {
-    if (selectedCourse?.is_mock && selectedLesson && activeEnrollment) {
+    const isMockOrQuiz = selectedCourse?.is_mock || selectedLesson?.content_type === "modulo_quiz";
+    if (isMockOrQuiz && selectedLesson && activeEnrollment && selectedCourse) {
       const newProgress = {
         ...lessonProgress,
         [selectedLesson.id]: {
@@ -586,7 +700,7 @@ export default function Treinamentos() {
       setLessonProgress(newProgress);
       localStorage.setItem(`dpp_mock_progress_${selectedCourse.id}`, JSON.stringify(newProgress));
 
-      // Calcular progresso do curso mockado
+      // Calcular progresso do curso (incluindo a aula de questionário)
       const totalLessonsList = Object.values(lessons).flat();
       const completedCount = totalLessonsList.filter(l => newProgress[l.id]?.status === "completed").length;
       const progressPercent = totalLessonsList.length > 0 ? (completedCount / totalLessonsList.length) * 100 : 0;
@@ -598,11 +712,25 @@ export default function Treinamentos() {
         completed_at: progressPercent >= 100 ? new Date().toISOString() : null,
       };
 
-      saveMockEnrollment(selectedCourse.id, updatedEnrollment);
+      if (selectedCourse.is_mock) {
+        saveMockEnrollment(selectedCourse.id, updatedEnrollment);
+      } else {
+        // Se for curso de banco de dados, atualizar a matrícula no Supabase
+        await supabase
+          .from("training_enrollments" as any)
+          .update({
+            progress_percent: progressPercent,
+            status: progressPercent >= 100 ? "completed" : "in_progress",
+            completed_at: progressPercent >= 100 ? new Date().toISOString() : null,
+          })
+          .eq("id", activeEnrollment.id);
+
+        setEnrollments(prev => ({ ...prev, [selectedCourse.id]: updatedEnrollment }));
+      }
 
       toast({
-        title: "Aula Concluída!",
-        description: "Progresso computado localmente.",
+        title: "Etapa Concluída!",
+        description: "Seu progresso foi computado com sucesso.",
       });
       return;
     }
@@ -622,6 +750,12 @@ export default function Treinamentos() {
 
       // Atualizar local
       setLessonProgress((prev) => ({ ...prev, [selectedLesson.id]: data }));
+
+      // Calcular progresso incluindo possíveis quizzes locais concluídos
+      const totalLessonsList = Object.values(lessons).flat();
+      const newProgress = { ...lessonProgress, [selectedLesson.id]: data };
+      const completedCount = totalLessonsList.filter(l => newProgress[l.id]?.status === "completed").length;
+      const progressPercent = totalLessonsList.length > 0 ? (completedCount / totalLessonsList.length) * 100 : 0;
 
       // Atualizar progresso geral de matrículas
       const { data: updatedEnroll, error: enrollErr } = await supabase
@@ -962,23 +1096,31 @@ export default function Treinamentos() {
 
           {/* Abas */}
           <div className="border-b border-border/50 flex flex-wrap gap-2">
-            {[
-              { id: "content", label: "Conteúdo / Aula" },
-              { id: "checklist", label: "Checklist Prático" },
-              { id: "notes", label: "Minhas Anotações" },
-            ].map((tab) => (
+            {selectedLesson.content_type === "modulo_quiz" ? (
               <button
-                key={tab.id}
-                onClick={() => setActiveLessonTab(tab.id as any)}
-                className={`px-4 py-2 text-sm font-semibold border-b-2 transition ${
-                  activeLessonTab === tab.id
-                    ? "border-primary text-primary"
-                    : "border-transparent text-muted-foreground hover:text-foreground"
-                }`}
+                className="px-4 py-2 text-sm font-semibold border-b-2 border-primary text-primary transition"
               >
-                {tab.label}
+                Questionário do Módulo
               </button>
-            ))}
+            ) : (
+              [
+                { id: "content", label: "Conteúdo / Aula" },
+                { id: "checklist", label: "Checklist Prático" },
+                { id: "notes", label: "Minhas Anotações" },
+              ].map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveLessonTab(tab.id as any)}
+                  className={`px-4 py-2 text-sm font-semibold border-b-2 transition ${
+                    activeLessonTab === tab.id
+                      ? "border-primary text-primary"
+                      : "border-transparent text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))
+            )}
             {selectedLesson.content_type === "avaliacao_final" && (
               <button
                 onClick={() => setActiveLessonTab("quiz")}
@@ -993,8 +1135,22 @@ export default function Treinamentos() {
             )}
           </div>
 
+          {/* Questionário de Módulo */}
+          {selectedLesson.content_type === "modulo_quiz" && (
+            <div className="p-2 w-full">
+              <TreinamentoQuizzes
+                enrollmentId={activeEnrollment.id}
+                userId={user.id}
+                quizId={selectedLesson.slug}
+                onSuccess={() => {
+                  handleCompleteLesson();
+                }}
+              />
+            </div>
+          )}
+
           {/* Aba Conteúdo */}
-          {activeLessonTab === "content" && (
+          {activeLessonTab === "content" && selectedLesson.content_type !== "modulo_quiz" && (
             <div className="bg-card border border-border/50 rounded-2xl p-6 prose prose-invert max-w-none">
               {selectedLesson.content_type === "video" && (
                 <div className="mb-4 p-4 bg-blue-500/10 border border-blue-500/20 text-blue-400 rounded-xl text-sm flex items-center gap-2">
@@ -1084,7 +1240,7 @@ export default function Treinamentos() {
           )}
 
           {/* Footer de Conclusão de Aula */}
-          {activeLessonTab === "content" && (
+          {activeLessonTab === "content" && selectedLesson.content_type !== "modulo_quiz" && (
             <div className="bg-card border border-border/50 rounded-2xl p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
               {/* Progresso de Validação */}
               <div className="flex flex-wrap gap-4 text-xs">
@@ -1140,19 +1296,33 @@ export default function Treinamentos() {
               {modules.map((m, idx) => {
                 const moduleLessons = lessons[m.id] || [];
                 const isExpanded = !!expandedModules[m.id];
+                const locked = isModuleLocked(idx, modules, lessons, lessonProgress);
                 return (
                   <div key={m.id} className="space-y-1">
                     <button
-                      onClick={() => setExpandedModules((prev) => ({ ...prev, [m.id]: !prev[m.id] }))}
-                      className="w-full flex items-center justify-between text-left p-2 hover:bg-muted/10 rounded-lg text-xs font-semibold text-slate-300"
+                      onClick={() => {
+                        if (locked) {
+                          toast({
+                            variant: "destructive",
+                            title: "Módulo bloqueado",
+                            description: "Conclua o questionário do módulo anterior para liberar.",
+                          });
+                          return;
+                        }
+                        setExpandedModules((prev) => ({ ...prev, [m.id]: !prev[m.id] }));
+                      }}
+                      className={`w-full flex items-center justify-between text-left p-2 hover:bg-muted/10 rounded-lg text-xs font-semibold ${
+                        locked ? "text-slate-500 cursor-not-allowed opacity-60" : "text-slate-300"
+                      }`}
                     >
-                      <span className="truncate flex-1">
+                      <span className="truncate flex-1 flex items-center gap-1.5">
+                        {locked && <Lock size={12} className="text-slate-500 shrink-0" />}
                         Módulo {idx + 1}: {m.title}
                       </span>
-                      {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                      {!locked && (isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />)}
                     </button>
 
-                    {isExpanded && (
+                    {isExpanded && !locked && (
                       <div className="pl-3 border-l border-border/50 space-y-1 mt-1">
                         {moduleLessons.map((l) => {
                           const isActive = selectedLesson.id === l.id;
@@ -1171,7 +1341,11 @@ export default function Treinamentos() {
                               {isComplete ? (
                                 <CheckCircle size={12} className="text-emerald-400 ml-1.5 shrink-0" />
                               ) : (
-                                <PlayCircle size={12} className="text-slate-500 ml-1.5 shrink-0" />
+                                l.content_type === "modulo_quiz" ? (
+                                  <ClipboardList size={12} className="text-slate-500 ml-1.5 shrink-0" />
+                                ) : (
+                                  <PlayCircle size={12} className="text-slate-500 ml-1.5 shrink-0" />
+                                )
                               )}
                             </button>
                           );
@@ -1242,17 +1416,30 @@ export default function Treinamentos() {
                 const moduleLessons = lessons[m.id] || [];
                 const completedCount = moduleLessons.filter((l) => lessonProgress[l.id]?.status === "completed").length;
                 const progressPct = moduleLessons.length > 0 ? (completedCount / moduleLessons.length) * 100 : 0;
+                const locked = isModuleLocked(idx, modules, lessons, lessonProgress);
 
                 return (
                   <div key={m.id} className="bg-card border border-border/50 rounded-2xl overflow-hidden transition hover:border-border">
                     {/* Cabeçalho do Módulo */}
                     <button
-                      onClick={() => setExpandedModules((prev) => ({ ...prev, [m.id]: !prev[m.id] }))}
-                      className="w-full flex flex-col sm:flex-row sm:items-center sm:justify-between p-5 text-left bg-muted/10 border-b border-border/20 gap-4"
+                      onClick={() => {
+                        if (locked) {
+                          toast({
+                            variant: "destructive",
+                            title: "Módulo bloqueado",
+                            description: "Conclua o questionário do módulo anterior para liberar.",
+                          });
+                          return;
+                        }
+                        setExpandedModules((prev) => ({ ...prev, [m.id]: !prev[m.id] }));
+                      }}
+                      className={`w-full flex flex-col sm:flex-row sm:items-center sm:justify-between p-5 text-left bg-muted/10 border-b border-border/20 gap-4 ${
+                        locked ? "opacity-50 cursor-not-allowed" : ""
+                      }`}
                     >
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center font-bold text-xs text-primary shrink-0">
-                          {idx + 1}
+                          {locked ? <Lock size={14} className="text-slate-400" /> : idx + 1}
                         </div>
                         <div>
                           <h3 className="font-bold text-slate-100 text-sm">{m.title}</h3>
@@ -1260,21 +1447,23 @@ export default function Treinamentos() {
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-4 text-xs font-semibold shrink-0">
-                        <div className="text-right">
-                          <span className="block text-foreground">
-                            {completedCount}/{moduleLessons.length} Aulas
-                          </span>
-                          <span className="block text-muted-foreground text-[10px] uppercase">
-                            {Math.round(progressPct)}% Concluído
-                          </span>
+                      {!locked && (
+                        <div className="flex items-center gap-4 text-xs font-semibold shrink-0">
+                          <div className="text-right">
+                            <span className="block text-foreground">
+                              {completedCount}/{moduleLessons.length} Aulas
+                            </span>
+                            <span className="block text-muted-foreground text-[10px] uppercase">
+                              {Math.round(progressPct)}% Concluído
+                            </span>
+                          </div>
+                          {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
                         </div>
-                        {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-                      </div>
+                      )}
                     </button>
 
                     {/* Aulas do Módulo */}
-                    {isExpanded && (
+                    {isExpanded && !locked && (
                       <div className="p-4 space-y-2 bg-muted/5 divide-y divide-border/20">
                         {moduleLessons.map((l) => {
                           const isComplete = lessonProgress[l.id]?.status === "completed";
@@ -1284,7 +1473,11 @@ export default function Treinamentos() {
                                 {isComplete ? (
                                   <CheckCircle size={16} className="text-emerald-400 shrink-0" />
                                 ) : (
-                                  <PlayCircle size={16} className="text-slate-500 shrink-0" />
+                                  l.content_type === "modulo_quiz" ? (
+                                    <ClipboardList size={16} className="text-slate-500 shrink-0" />
+                                  ) : (
+                                    <PlayCircle size={16} className="text-slate-500 shrink-0" />
+                                  )
                                 )}
                                 <span className="font-medium text-slate-200">{l.title}</span>
                               </div>
@@ -1295,7 +1488,7 @@ export default function Treinamentos() {
                                   variant={isComplete ? "outline" : "default"}
                                   className="text-xs shrink-0"
                                 >
-                                  {isComplete ? "Rever" : "Acessar"}
+                                  {isComplete ? "Rever" : (l.content_type === "modulo_quiz" ? "Responder" : "Acessar")}
                                 </Button>
                               )}
                             </div>

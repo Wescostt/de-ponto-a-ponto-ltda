@@ -4,6 +4,7 @@ import { Check, X, ArrowRight, RotateCcw, AlertTriangle, GraduationCap } from "l
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { MOCK_QUIZZES_DATA, getFallbackQuiz } from "./quizData";
 
 interface TreinamentoQuizzesProps {
   enrollmentId: string;
@@ -52,6 +53,38 @@ export function TreinamentoQuizzes({ enrollmentId, userId, quizId, onSuccess }: 
   const loadQuizData = async () => {
     setLoading(true);
     try {
+      const isMockQuiz = quizId.startsWith("quiz_") || quizId.startsWith("mock_");
+
+      if (isMockQuiz) {
+        // Carregar localmente do quizData
+        let mockData = MOCK_QUIZZES_DATA[quizId];
+        if (!mockData) {
+          // Gerar fallback dinâmico usando informações do localStorage ou URL
+          mockData = getFallbackQuiz(quizId, "Módulo Especial");
+        }
+        setQuiz(mockData.quiz);
+        setQuestions(mockData.questions);
+
+        // Carregar tentativas locais
+        const savedAttemptsStr = localStorage.getItem(`dpp_mock_quiz_attempts_${quizId}_${userId}`);
+        const savedAttempts = savedAttemptsStr ? JSON.parse(savedAttemptsStr) : [];
+        setAttempts(savedAttempts);
+
+        if (savedAttempts.length > 0) {
+          const last = savedAttempts[0];
+          setLastResult({
+            score: last.score,
+            passed: last.passed,
+            attemptNumber: last.attempt_number,
+          });
+          if (last.passed) {
+            setIsSubmitted(true);
+          }
+        }
+        setLoading(false);
+        return;
+      }
+
       // 1. Buscar quiz
       const { data: qData, error: qErr } = await supabase
         .from("training_quizzes" as any)
@@ -173,8 +206,6 @@ export function TreinamentoQuizzes({ enrollmentId, userId, quizId, onSuccess }: 
       const totalPoints = questions.reduce((acc, q) => acc + (q.points || 1), 0);
       let awardedPoints = 0;
 
-      const answersToInsert: any[] = [];
-
       questions.forEach((q) => {
         const selectedOptId = selectedAnswers[q.id];
         const selectedOpt = q.options.find((o) => o.id === selectedOptId);
@@ -184,20 +215,51 @@ export function TreinamentoQuizzes({ enrollmentId, userId, quizId, onSuccess }: 
           correctCount++;
           awardedPoints += q.points || 1;
         }
-
-        answersToInsert.push({
-          question_id: q.id,
-          selected_option_id: selectedOptId,
-          is_correct: isCorrect,
-          points_awarded: isCorrect ? (q.points || 1) : 0,
-        });
       });
 
       const score = Math.round((awardedPoints / totalPoints) * 100);
       const passed = score >= quiz.passing_score;
       const attemptNum = attempts.length + 1;
 
-      // 1. Inserir tentativa
+      const isMockQuiz = quizId.startsWith("quiz_") || quizId.startsWith("mock_");
+
+      if (isMockQuiz) {
+        const mockAttempt = {
+          id: `mock_attempt_${Date.now()}`,
+          enrollment_id: enrollmentId,
+          quiz_id: quizId,
+          user_id: userId,
+          attempt_number: attemptNum,
+          score,
+          passed,
+          submitted_at: new Date().toISOString(),
+        };
+
+        const updatedAttempts = [mockAttempt, ...attempts];
+        localStorage.setItem(`dpp_mock_quiz_attempts_${quizId}_${userId}`, JSON.stringify(updatedAttempts));
+
+        setLastResult({ score, passed, attemptNumber: attemptNum });
+        setIsSubmitted(true);
+        setAttempts(updatedAttempts);
+
+        if (passed) {
+          toast({
+            title: "Parabéns!",
+            description: `Você foi aprovado com nota ${score}%.`,
+          });
+          onSuccess();
+        } else {
+          toast({
+            variant: "destructive",
+            title: "Aprovação pendente",
+            description: `Você obteve nota ${score}%. A nota mínima é ${quiz.passing_score}%.`,
+          });
+        }
+        setSubmitting(false);
+        return;
+      }
+
+      // 1. Inserir tentativa no Supabase
       const { data: attemptData, error: attemptErr } = await supabase
         .from("training_quiz_attempts" as any)
         .insert({
@@ -215,14 +277,23 @@ export function TreinamentoQuizzes({ enrollmentId, userId, quizId, onSuccess }: 
       if (attemptErr) throw attemptErr;
 
       // 2. Inserir respostas detalhadas
-      const answersWithAttempt = answersToInsert.map((ans) => ({
-        ...ans,
-        attempt_id: attemptData.id,
-      }));
+      const answersToInsert = questions.map((q) => {
+        const selectedOptId = selectedAnswers[q.id];
+        const selectedOpt = q.options.find((o) => o.id === selectedOptId);
+        const isCorrect = selectedOpt ? selectedOpt.is_correct : false;
+
+        return {
+          question_id: q.id,
+          selected_option_id: selectedOptId,
+          is_correct: isCorrect,
+          points_awarded: isCorrect ? (q.points || 1) : 0,
+          attempt_id: attemptData.id,
+        };
+      });
 
       const { error: ansErr } = await supabase
         .from("training_quiz_answers" as any)
-        .insert(answersWithAttempt);
+        .insert(answersToInsert);
 
       if (ansErr) throw ansErr;
 
