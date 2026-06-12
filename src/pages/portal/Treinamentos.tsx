@@ -736,8 +736,8 @@ const findMockLesson = (courseSlug: string, lessonSlug: string, lessonTitle: str
   }, [activeTab]);
 
   // Matricular usuário em um curso
-  const handleEnroll = async (courseId: string) => {
-    if (!user) return;
+  const handleEnroll = async (courseId: string): Promise<any> => {
+    if (!user) return null;
     const course = courses.find(c => c.id === courseId);
     if (course?.is_mock) {
       const mockEnrollment = {
@@ -753,7 +753,7 @@ const findMockLesson = (courseSlug: string, lessonSlug: string, lessonTitle: str
         title: "Matrícula realizada!",
         description: "Treinamento iniciado localmente.",
       });
-      return;
+      return mockEnrollment;
     }
     try {
       const { data, error } = await supabase
@@ -777,6 +777,7 @@ const findMockLesson = (courseSlug: string, lessonSlug: string, lessonTitle: str
 
       // Atualizar local
       setEnrollments((prev) => ({ ...prev, [courseId]: data }));
+      return data;
     } catch (err: any) {
       console.error(err);
       toast({
@@ -784,6 +785,7 @@ const findMockLesson = (courseSlug: string, lessonSlug: string, lessonTitle: str
         title: "Erro ao matricular",
         description: err.message,
       });
+      return null;
     }
   };
 
@@ -1734,7 +1736,20 @@ const findMockLesson = (courseSlug: string, lessonSlug: string, lessonTitle: str
                         {moduleLessons.map((l) => {
                           const isComplete = lessonProgress[l.id]?.status === "completed";
                           return (
-                            <div key={l.id} className="flex items-center justify-between p-2.5 text-sm transition hover:bg-muted/10 rounded-lg">
+                            <div 
+                              key={l.id} 
+                              onClick={async () => {
+                                if (isEnrolled) {
+                                  setSelectedLesson(l);
+                                } else {
+                                  const success = await handleEnroll(selectedCourse.id);
+                                  if (success) {
+                                    setSelectedLesson(l);
+                                  }
+                                }
+                              }}
+                              className="flex items-center justify-between p-2.5 text-sm transition hover:bg-muted/10 rounded-lg cursor-pointer"
+                            >
                               <div className="flex items-center gap-2">
                                 {isComplete ? (
                                   <CheckCircle size={16} className="text-emerald-400 shrink-0" />
@@ -1747,16 +1762,13 @@ const findMockLesson = (courseSlug: string, lessonSlug: string, lessonTitle: str
                                 )}
                                 <span className="font-medium text-slate-200">{l.title}</span>
                               </div>
-                              {isEnrolled && (
-                                <Button
-                                  onClick={() => setSelectedLesson(l)}
-                                  size="xs"
-                                  variant={isComplete ? "outline" : "default"}
-                                  className="text-xs shrink-0"
-                                >
-                                  {isComplete ? "Rever" : (l.content_type === "modulo_quiz" ? "Responder" : "Acessar")}
-                                </Button>
-                              )}
+                              <Button
+                                size="xs"
+                                variant={isComplete ? "outline" : "default"}
+                                className="text-xs shrink-0 pointer-events-none"
+                              >
+                                {isComplete ? "Rever" : (l.content_type === "modulo_quiz" ? "Responder" : "Acessar")}
+                              </Button>
                             </div>
                           );
                         })}
