@@ -20,6 +20,8 @@ import { useLessonHeartbeat } from "@/hooks/useLessonHeartbeat";
 import { TreinamentoQuizzes } from "@/components/treinamentos/TreinamentoQuizzes";
 import { TreinamentoCertificates } from "@/components/treinamentos/TreinamentoCertificates";
 import { MOCK_TRAININGS } from "@/components/treinamentos/trainingsData";
+import { DETAILED_LESSONS_DATA } from "@/components/treinamentos/detailedLessonsData";
+
 
 // Importações de Imagens dos Assets
 import photoCampo from "@/assets/photo-campo.png";
@@ -269,7 +271,12 @@ export default function Treinamentos() {
 
       const dbCourses = cData || [];
       const dbSlugs = new Set(dbCourses.map((c: any) => c.slug));
-      const activeMockCourses = mappedMockCourses.filter(mc => !dbSlugs.has(mc.slug));
+      const activeMockCourses = mappedMockCourses.filter(mc => {
+        if (mc.slug === "training-007" && dbSlugs.has("secullum-ponto-web-ultimate")) {
+          return false;
+        }
+        return !dbSlugs.has(mc.slug);
+      });
 
       setCourses([...dbCourses, ...activeMockCourses]);
 
@@ -490,10 +497,9 @@ const findMockLesson = (courseSlug: string, lessonSlug: string, lessonTitle: str
       (lData || []).forEach((l) => {
         if (!lMap[l.module_id]) lMap[l.module_id] = [];
         
-        // Enriquecer com o conteúdo detalhado mockado mapeado
-        const mappedSteps = LESSON_MAPPING[l.slug];
-        if (mappedSteps && mappedSteps.length > 0) {
-          let combinedContent = `## ${l.title}\n\n${l.subtitle || ""}\n\n`;
+        // Enriquecer com o conteúdo detalhado se existir
+        if (DETAILED_LESSONS_DATA[l.slug]) {
+          let combinedContent = "";
           
           // Adicionar imagens ilustrativas específicas baseadas na aula
           if (l.slug === "visao-geral-ambiente") {
@@ -508,15 +514,7 @@ const findMockLesson = (courseSlug: string, lessonSlug: string, lessonTitle: str
             combinedContent += `![Suporte Técnico De Ponto a Ponto](photo-suporte)\n\n`;
           }
 
-          mappedSteps.forEach((mStep) => {
-            const step = findMockLesson(mStep.courseId, mStep.stepId, "");
-            if (step) {
-              combinedContent += `### ${step.title}\n\n${step.description}\n\n`;
-              if (step.importantNote) {
-                combinedContent += `*Observação importante:* ${step.importantNote}\n\n`;
-              }
-            }
-          });
+          combinedContent += DETAILED_LESSONS_DATA[l.slug];
           l.content_md = combinedContent;
         } else {
           // Fallback se não estiver no mapeamento explícito
@@ -1324,7 +1322,9 @@ const findMockLesson = (courseSlug: string, lessonSlug: string, lessonTitle: str
     // Cálculo das pendências para liberação do botão Concluir
     const currentHeartbeatSeconds = selectedCourse?.is_mock ? mockActiveSeconds : activeSeconds;
     const currentScrollPercent = selectedCourse?.is_mock ? mockScrollPercent : scrollPercent;
-    const requiredSeconds = selectedLesson.required_active_seconds || 60;
+    const requiredSeconds = selectedLesson.content_type === "leitura"
+      ? Math.min(selectedLesson.required_active_seconds || 5, 10)
+      : (selectedLesson.required_active_seconds || 60);
     const hasEnoughTime = currentHeartbeatSeconds >= requiredSeconds;
     const hasEnoughScroll = currentScrollPercent >= (selectedLesson.required_scroll_percent || 70);
 
