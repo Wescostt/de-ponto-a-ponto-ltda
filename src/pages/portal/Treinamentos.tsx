@@ -21,6 +21,7 @@ import { TreinamentoQuizzes } from "@/components/treinamentos/TreinamentoQuizzes
 import { TreinamentoCertificates } from "@/components/treinamentos/TreinamentoCertificates";
 import { MOCK_TRAININGS } from "@/components/treinamentos/trainingsData";
 import { DETAILED_LESSONS_DATA } from "@/components/treinamentos/detailedLessonsData";
+import { DETAILED_MOCK_LESSONS_DATA } from "@/components/treinamentos/detailedMockLessonsData";
 
 
 // Importações de Imagens dos Assets
@@ -395,19 +396,28 @@ const findMockLesson = (courseSlug: string, lessonSlug: string, lessonTitle: str
               };
             }
 
-            let contentMd = `## ${s.title}\n\n`;
+            const detailedKey = `${course.id}_${s.id}`;
+            let contentMd = "";
+            
+            // Adicionar imagens ilustrativas nos mocks baseados no ID da etapa
             if (s.id === "t7s1" || s.id === "t7s2") {
               contentMd += `![Painel do Secullum Ponto Web e Configurações de Acesso](photo-treinamento)\n\n`;
-            } else if (s.id === "t7s6") {
+            } else if (s.id === "t7s6" || (s.id === "s1" && course.id === "training-003")) {
               contentMd += `![Auditoria e Segurança Operacional do DP](photo-tecnologia)\n\n`;
-            } else if (s.id === "t7s3") {
+            } else if (s.id === "t7s3" || (s.id === "s3" && course.id === "training-001")) {
               contentMd += `![Estudo Prático em Duas Abas](photo-campo)\n\n`;
-            } else if (s.id === "t7s38") {
+            } else if (s.id === "t7s38" || (s.id === "s1" && course.id === "training-004")) {
               contentMd += `![Posicionamento Correto e Iluminação para Biometria Facial](photo-time)\n\n`;
-            } else if (s.id === "t7s16") {
+            } else if (s.id === "t7s16" || (s.id === "s13" && course.id === "training-001")) {
               contentMd += `![Suporte Técnico De Ponto a Ponto](photo-suporte)\n\n`;
             }
-            contentMd += `${s.description}${s.importantNote ? `\n\n### Observação importante\n\n${s.importantNote}` : ""}`;
+
+            if (DETAILED_MOCK_LESSONS_DATA[detailedKey]) {
+              contentMd += DETAILED_MOCK_LESSONS_DATA[detailedKey];
+            } else {
+              // Fallback para outros mocks
+              contentMd += `## ${s.title}\n\n${s.description}${s.importantNote ? `\n\n### Observação importante\n\n${s.importantNote}` : ""}`;
+            }
 
             return {
               id: lessonId,
