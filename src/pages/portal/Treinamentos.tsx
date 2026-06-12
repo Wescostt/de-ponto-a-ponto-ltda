@@ -21,6 +21,131 @@ import { TreinamentoQuizzes } from "@/components/treinamentos/TreinamentoQuizzes
 import { TreinamentoCertificates } from "@/components/treinamentos/TreinamentoCertificates";
 import { MOCK_TRAININGS } from "@/components/treinamentos/trainingsData";
 
+// Importações de Imagens dos Assets
+import photoCampo from "@/assets/photo-campo.png";
+import photoTreinamento from "@/assets/photo-treinamento.png";
+import photoSuporte from "@/assets/photo-suporte.png";
+import photoTecnologia from "@/assets/photo-tecnologia.png";
+import photoTime from "@/assets/photo-time.jpeg";
+import photoInstitucional from "@/assets/photo-institucional.png";
+
+// Dicionário de Mapeamento de Lições do BD para Passos Detalhados dos Mocks
+const LESSON_MAPPING: Record<string, { courseId: string; stepId: string }[]> = {
+  "objetivo-da-trilha": [
+    { courseId: "training-007", stepId: "t7s1" },
+    { courseId: "training-007", stepId: "t7s2" },
+    { courseId: "training-007", stepId: "t7s4" },
+  ],
+  "como-praticar-com-sistema-aberto": [
+    { courseId: "training-007", stepId: "t7s3" },
+    { courseId: "training-007", stepId: "t7s5" },
+  ],
+  "responsabilidade-operacional": [
+    { courseId: "training-007", stepId: "t7s6" },
+    { courseId: "training-007", stepId: "t7s7" },
+    { courseId: "training-007", stepId: "t7s11" },
+  ],
+  "portaria-671-informativo": [
+    { courseId: "training-007", stepId: "t7s8" },
+    { courseId: "training-007", stepId: "t7s9" },
+    { courseId: "training-007", stepId: "t7s10" },
+  ],
+  "visao-geral-ambiente": [
+    { courseId: "training-007", stepId: "t7s12" },
+    { courseId: "training-007", stepId: "t7s13" },
+    { courseId: "training-007", stepId: "t7s14" },
+    { courseId: "training-007", stepId: "t7s15" },
+  ],
+  "cadastro-funcionarios": [
+    { courseId: "training-007", stepId: "t7s19" },
+    { courseId: "training-007", stepId: "t7s20" },
+  ],
+  "cadastro-departamentos": [
+    { courseId: "training-007", stepId: "t7s17" },
+    { courseId: "training-007", stepId: "t7s18" },
+    { courseId: "training-007", stepId: "t7s21" },
+    { courseId: "training-007", stepId: "t7s22" },
+  ],
+  "horarios-jornadas": [
+    { courseId: "training-007", stepId: "t7s23" },
+    { courseId: "training-007", stepId: "t7s24" },
+    { courseId: "training-007", stepId: "t7s26" },
+    { courseId: "training-007", stepId: "t7s27" },
+  ],
+  "escalas-e-feriados": [
+    { courseId: "training-007", stepId: "t7s25" },
+    { courseId: "training-007", stepId: "t7s28" },
+    { courseId: "training-007", stepId: "t7s29" },
+    { courseId: "training-007", stepId: "t7s30" },
+  ],
+  "origem-das-marcacoes": [
+    { courseId: "training-007", stepId: "t7s31" },
+    { courseId: "training-007", stepId: "t7s32" },
+    { courseId: "training-007", stepId: "t7s37" },
+  ],
+  "tratamento-inconsistencias": [
+    { courseId: "training-007", stepId: "t7s33" },
+    { courseId: "training-007", stepId: "t7s34" },
+    { courseId: "training-007", stepId: "t7s35" },
+    { courseId: "training-007", stepId: "t7s36" },
+  ],
+  "conceitos-banco-horas": [
+    { courseId: "training-007", stepId: "t7s52" },
+    { courseId: "training-007", stepId: "t7s53" },
+    { courseId: "training-007", stepId: "t7s54" },
+    { courseId: "training-007", stepId: "t7s55" },
+  ],
+  "interpretar-bsaldo": [
+    { courseId: "training-007", stepId: "t7s56" },
+    { courseId: "training-007", stepId: "t7s57" },
+    { courseId: "training-007", stepId: "t7s58" },
+  ],
+  "boas-praticas-facial": [
+    { courseId: "training-007", stepId: "t7s38" },
+    { courseId: "training-007", stepId: "t7s39" },
+    { courseId: "training-007", stepId: "t7s40" },
+    { courseId: "training-007", stepId: "t7s41" },
+    { courseId: "training-007", stepId: "t7s42" },
+    { courseId: "training-007", stepId: "t7s43" },
+    { courseId: "training-007", stepId: "t7s44" },
+  ],
+  "espelho-de-ponto": [
+    { courseId: "training-007", stepId: "t7s59" },
+    { courseId: "training-007", stepId: "t7s60" },
+    { courseId: "training-007", stepId: "t7s61" },
+    { courseId: "training-007", stepId: "t7s62" },
+    { courseId: "training-007", stepId: "t7s63" },
+    { courseId: "training-007", stepId: "t7s64" },
+    { courseId: "training-007", stepId: "t7s65" },
+  ],
+  "checklist-fechamento": [
+    { courseId: "training-007", stepId: "t7s66" },
+    { courseId: "training-007", stepId: "t7s67" },
+    { courseId: "training-007", stepId: "t7s68" },
+    { courseId: "training-007", stepId: "t7s69" },
+    { courseId: "training-007", stepId: "t7s70" },
+    { courseId: "training-007", stepId: "t7s71" },
+    { courseId: "training-007", stepId: "t7s72" },
+  ],
+  "ferias-afastamentos-abonos": [
+    { courseId: "training-007", stepId: "t7s73" },
+    { courseId: "training-007", stepId: "t7s74" },
+    { courseId: "training-007", stepId: "t7s75" },
+  ],
+  "erros-comuns": [
+    { courseId: "training-007", stepId: "t7s16" },
+    { courseId: "training-007", stepId: "t7s51" },
+    { courseId: "training-007", stepId: "t7s76" },
+    { courseId: "training-007", stepId: "t7s77" },
+    { courseId: "training-007", stepId: "t7s78" },
+  ],
+  "orientacoes-avaliacao": [
+    { courseId: "training-007", stepId: "t7s79" },
+    { courseId: "training-007", stepId: "t7s80" },
+  ],
+};
+
+
 // ── Badges Auxiliares ────────────────────────────────────────────────────────
 const StatusBadge = ({ status }: { status: string }) => {
   const styles: Record<string, { bg: string; text: string }> = {
@@ -203,7 +328,7 @@ export default function Treinamentos() {
 
 // Encontrar a aula correspondente em MOCK_TRAININGS
 const findMockLesson = (courseSlug: string, lessonSlug: string, lessonTitle: string) => {
-  const mockCourse = MOCK_TRAININGS.find(c => c.id === courseSlug);
+  const mockCourse = MOCK_TRAININGS.find(c => c.id === courseSlug || (courseSlug === 'secullum-ponto-web-ultimate' && c.id === 'training-007'));
   if (!mockCourse) return null;
   for (const m of mockCourse.modules) {
     const step = m.steps.find(s => s.id === lessonSlug || s.title === lessonTitle);
@@ -263,13 +388,27 @@ const findMockLesson = (courseSlug: string, lessonSlug: string, lessonTitle: str
               };
             }
 
+            let contentMd = `## ${s.title}\n\n`;
+            if (s.id === "t7s1" || s.id === "t7s2") {
+              contentMd += `![Painel do Secullum Ponto Web e Configurações de Acesso](photo-treinamento)\n\n`;
+            } else if (s.id === "t7s6") {
+              contentMd += `![Auditoria e Segurança Operacional do DP](photo-tecnologia)\n\n`;
+            } else if (s.id === "t7s3") {
+              contentMd += `![Estudo Prático em Duas Abas](photo-campo)\n\n`;
+            } else if (s.id === "t7s38") {
+              contentMd += `![Posicionamento Correto e Iluminação para Biometria Facial](photo-time)\n\n`;
+            } else if (s.id === "t7s16") {
+              contentMd += `![Suporte Técnico De Ponto a Ponto](photo-suporte)\n\n`;
+            }
+            contentMd += `${s.description}${s.importantNote ? `\n\n### Observação importante\n\n${s.importantNote}` : ""}`;
+
             return {
               id: lessonId,
               module_id: m.id,
               slug: s.id,
               title: s.title,
               content_type: "leitura",
-              content_md: `## ${s.title}\n\n${s.description}${s.importantNote ? `\n\n### Observação importante\n\n${s.importantNote}` : ""}`,
+              content_md: contentMd,
               estimated_minutes: 5,
               required_active_seconds: 10,
               required_scroll_percent: 70,
@@ -351,11 +490,41 @@ const findMockLesson = (courseSlug: string, lessonSlug: string, lessonTitle: str
       (lData || []).forEach((l) => {
         if (!lMap[l.module_id]) lMap[l.module_id] = [];
         
-        // Enriquecer com conteúdo mockado se content_md estiver vazio
-        if (!l.content_md) {
-          const mockStep = findMockLesson(course.slug, l.slug, l.title);
-          if (mockStep) {
-            l.content_md = `## ${mockStep.title}\n\n${mockStep.description}${mockStep.importantNote ? `\n\n### Observação importante\n\n${mockStep.importantNote}` : ""}`;
+        // Enriquecer com o conteúdo detalhado mockado mapeado
+        const mappedSteps = LESSON_MAPPING[l.slug];
+        if (mappedSteps && mappedSteps.length > 0) {
+          let combinedContent = `## ${l.title}\n\n${l.subtitle || ""}\n\n`;
+          
+          // Adicionar imagens ilustrativas específicas baseadas na aula
+          if (l.slug === "visao-geral-ambiente") {
+            combinedContent += `![Painel do Secullum Ponto Web e Configurações de Acesso](photo-treinamento)\n\n`;
+          } else if (l.slug === "responsabilidade-operacional") {
+            combinedContent += `![Auditoria e Segurança Operacional do DP](photo-tecnologia)\n\n`;
+          } else if (l.slug === "como-praticar-com-sistema-aberto") {
+            combinedContent += `![Estudo Prático em Duas Abas](photo-campo)\n\n`;
+          } else if (l.slug === "boas-praticas-facial") {
+            combinedContent += `![Posicionamento Correto e Iluminação para Biometria Facial](photo-time)\n\n`;
+          } else if (l.slug === "erros-comuns") {
+            combinedContent += `![Suporte Técnico De Ponto a Ponto](photo-suporte)\n\n`;
+          }
+
+          mappedSteps.forEach((mStep) => {
+            const step = findMockLesson(mStep.courseId, mStep.stepId, "");
+            if (step) {
+              combinedContent += `### ${step.title}\n\n${step.description}\n\n`;
+              if (step.importantNote) {
+                combinedContent += `*Observação importante:* ${step.importantNote}\n\n`;
+              }
+            }
+          });
+          l.content_md = combinedContent;
+        } else {
+          // Fallback se não estiver no mapeamento explícito
+          if (!l.content_md) {
+            const mockStep = findMockLesson(course.slug, l.slug, l.title);
+            if (mockStep) {
+              l.content_md = `## ${mockStep.title}\n\n${mockStep.description}${mockStep.importantNote ? `\n\n### Observação importante\n\n${mockStep.importantNote}` : ""}`;
+            }
           }
         }
         
@@ -848,36 +1017,128 @@ const findMockLesson = (courseSlug: string, lessonSlug: string, lessonTitle: str
   const renderSimpleMD = (mdText: string) => {
     if (!mdText) return null;
     const lines = mdText.split("\n");
-    return lines.map((line, idx) => {
-      if (line.startsWith("## ")) {
-        return (
-          <h2 key={idx} className="text-xl font-bold text-slate-100 mt-6 mb-3 border-b border-border/30 pb-1">
-            {line.replace("## ", "")}
+    let inList = false;
+    let listItems: React.ReactNode[] = [];
+    const elements: React.ReactNode[] = [];
+
+    const flushList = (key: string | number) => {
+      if (inList && listItems.length > 0) {
+        elements.push(
+          <ul key={`list-${key}`} className="list-disc pl-5 space-y-1.5 my-3 text-sm text-slate-300">
+            {listItems}
+          </ul>
+        );
+        listItems = [];
+        inList = false;
+      }
+    };
+
+    const parseInlineStyles = (text: string) => {
+      const parts = text.split(/\*\*([^*]+)\*\*/g);
+      return parts.map((part, index) => {
+        if (index % 2 === 1) {
+          return <strong key={index} className="font-bold text-slate-100">{part}</strong>;
+        }
+        return part;
+      });
+    };
+
+    const getAssetUrl = (path: string) => {
+      const p = path.toLowerCase();
+      if (p.includes("photo-campo")) return photoCampo;
+      if (p.includes("photo-treinamento")) return photoTreinamento;
+      if (p.includes("photo-suporte")) return photoSuporte;
+      if (p.includes("photo-tecnologia")) return photoTecnologia;
+      if (p.includes("photo-time")) return photoTime;
+      if (p.includes("photo-institucional")) return photoInstitucional;
+      return path;
+    };
+
+    lines.forEach((line, idx) => {
+      const trimmed = line.trim();
+
+      if (trimmed.startsWith("## ")) {
+        flushList(idx);
+        elements.push(
+          <h2 key={idx} className="text-xl font-bold text-slate-100 mt-6 mb-3 border-b border-border/30 pb-2 flex items-center gap-2">
+            {parseInlineStyles(trimmed.replace("## ", ""))}
           </h2>
         );
+        return;
       }
-      if (line.startsWith("### ")) {
-        const headerText = line.replace("### ", "");
+
+      if (trimmed.startsWith("### ")) {
+        flushList(idx);
+        const headerText = trimmed.replace("### ", "");
         const isDica = headerText.toLowerCase().includes("dica");
         const isNote = headerText.toLowerCase().includes("observação") || headerText.toLowerCase().includes("nota");
-        return (
+        elements.push(
           <h3
             key={idx}
-            className={`text-md font-semibold mt-4 mb-2 ${
-              isDica ? "text-blue-400" : isNote ? "text-amber-400" : "text-slate-200"
+            className={`text-md font-semibold mt-5 mb-2.5 flex items-center gap-1.5 ${
+              isDica ? "text-primary font-bold border-l-2 border-primary pl-2" : isNote ? "text-amber-400" : "text-slate-200"
             }`}
           >
-            {headerText}
+            {parseInlineStyles(headerText)}
           </h3>
         );
+        return;
       }
-      if (line.trim() === "") return <div key={idx} className="h-2" />;
-      return (
-        <p key={idx} className="text-sm leading-relaxed text-slate-300 mb-2">
-          {line}
-        </p>
-      );
+
+      if (trimmed.startsWith("![") && trimmed.includes("](") && trimmed.endsWith(")")) {
+        flushList(idx);
+        const altMatch = trimmed.match(/!\[(.*?)\]/);
+        const urlMatch = trimmed.match(/\((.*?)\)/);
+        if (urlMatch) {
+          const alt = altMatch ? altMatch[1] : "";
+          const url = urlMatch[1];
+          elements.push(
+            <div key={idx} className="my-6 rounded-xl overflow-hidden border border-border bg-muted/20 p-2 max-w-2xl mx-auto shadow-md">
+              <img src={getAssetUrl(url)} alt={alt} className="w-full h-auto rounded-lg object-cover" />
+              {alt && <span className="block text-center text-xs text-muted-foreground mt-2 italic">{alt}</span>}
+            </div>
+          );
+          return;
+        }
+      }
+
+      if (trimmed.startsWith("- ") || trimmed.startsWith("* ")) {
+        inList = true;
+        const itemText = trimmed.substring(2);
+        listItems.push(
+          <li key={`li-${idx}`} className="text-sm text-slate-300 leading-relaxed">
+            {parseInlineStyles(itemText)}
+          </li>
+        );
+        return;
+      }
+
+      if (trimmed === "") {
+        flushList(idx);
+        elements.push(<div key={idx} className="h-2" />);
+        return;
+      }
+
+      flushList(idx);
+      const isImportantNote = trimmed.startsWith("*Observação importante:*") || trimmed.startsWith("Observação importante:");
+      if (isImportantNote) {
+        elements.push(
+          <div key={idx} className="my-4 p-4 bg-amber-500/10 border border-amber-500/20 text-amber-300 rounded-xl text-xs leading-relaxed flex gap-2.5">
+            <span className="font-bold shrink-0">⚠️ NOTA:</span>
+            <span>{parseInlineStyles(trimmed.replace(/^\*Observação importante:\*\s*|^\s*Observação importante:\s*/i, ""))}</span>
+          </div>
+        );
+      } else {
+        elements.push(
+          <p key={idx} className="text-sm leading-relaxed text-slate-300 mb-2">
+            {parseInlineStyles(trimmed)}
+          </p>
+        );
+      }
     });
+
+    flushList("end");
+    return elements;
   };
 
   // Filtro de cursos
@@ -1152,12 +1413,17 @@ const findMockLesson = (courseSlug: string, lessonSlug: string, lessonTitle: str
           {/* Aba Conteúdo */}
           {activeLessonTab === "content" && selectedLesson.content_type !== "modulo_quiz" && (
             <div className="bg-card border border-border/50 rounded-2xl p-6 prose prose-invert max-w-none">
-              {selectedLesson.content_type === "video" && (
-                <div className="mb-4 p-4 bg-blue-500/10 border border-blue-500/20 text-blue-400 rounded-xl text-sm flex items-center gap-2">
-                  <HelpCircle size={16} />
-                  <span>Esta funcionalidade de vídeo será implementada na próxima versão. Por favor, utilize os textos explicativos e checklists práticos para concluir este treinamento.</span>
+              {/* Informativo de vídeos em breve */}
+              <div className="mb-6 p-4 bg-primary/10 border border-primary/20 text-slate-200 rounded-xl text-sm flex items-start gap-3 shadow-sm">
+                <HelpCircle className="text-primary mt-0.5 shrink-0" size={18} />
+                <div>
+                  <span className="font-semibold text-primary block mb-0.5">Vídeos em Breve</span>
+                  <p className="text-xs text-slate-300 leading-relaxed">
+                    Os vídeos práticos e explicativos deste treinamento estão em produção e serão disponibilizados em breve na plataforma. 
+                    Por hora, aproveite o conteúdo escrito detalhado abaixo e execute o checklist prático correspondente para consolidar seu aprendizado.
+                  </p>
                 </div>
-              )}
+              </div>
               {renderSimpleMD(selectedLesson.content_md)}
             </div>
           )}
