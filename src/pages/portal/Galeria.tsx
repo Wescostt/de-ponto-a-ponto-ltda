@@ -11,16 +11,25 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { Upload } from "lucide-react";
 
-const CATEGORIES = ["instalacoes", "treinamentos", "projetos", "bastidores"] as const;
+const CATEGORIES = ["instalacoes", "treinamentos", "projetos", "bastidores", "operacoes"] as const;
+
+const CATEGORY_LABELS: Record<typeof CATEGORIES[number], string> = {
+  instalacoes: "Instalações",
+  treinamentos: "Treinamentos",
+  projetos: "Projetos",
+  bastidores: "Bastidores",
+  operacoes: "Operações",
+};
 
 type MediaRow = { id: string; type: "image" | "video"; category: string; title: string | null; storage_path: string };
 
 const Galeria = () => {
-  const { isAdmin } = useAuth();
+  const { isAdmin, isGestorMaster } = useAuth();
+  const canManage = isAdmin || isGestorMaster;
   const [items, setItems] = useState<MediaRow[]>([]);
   const [filter, setFilter] = useState<"all" | typeof CATEGORIES[number]>("all");
   const [busy, setBusy] = useState(false);
-  const [form, setForm] = useState({ title: "", category: "instalacoes", type: "image" as "image" | "video" });
+  const [form, setForm] = useState({ title: "", category: "instalacoes" as typeof CATEGORIES[number], type: "image" as "image" | "video" });
   const [file, setFile] = useState<File | null>(null);
 
   const load = async () => {
@@ -55,14 +64,14 @@ const Galeria = () => {
     <div>
       <PageHeader title="Galeria de mídia" subtitle="Imagens e vídeos do dia a dia." />
 
-      {isAdmin && (
+      {canManage && (
         <Card className="glass p-5 mb-6">
           <div className="grid md:grid-cols-5 gap-3 items-end">
             <div><Label>Título</Label><Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} /></div>
             <div><Label>Categoria</Label>
-              <Select value={form.category} onValueChange={(v) => setForm({ ...form, category: v })}>
+              <Select value={form.category} onValueChange={(v) => setForm({ ...form, category: v as any })}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>{CATEGORIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
+                <SelectContent>{CATEGORIES.map((c) => <SelectItem key={c} value={c}>{CATEGORY_LABELS[c]}</SelectItem>)}</SelectContent>
               </Select>
             </div>
             <div><Label>Tipo</Label>
@@ -80,7 +89,7 @@ const Galeria = () => {
       <Tabs value={filter} onValueChange={(v: any) => setFilter(v)} className="mb-4">
         <TabsList>
           <TabsTrigger value="all">Todos</TabsTrigger>
-          {CATEGORIES.map((c) => <TabsTrigger key={c} value={c}>{c}</TabsTrigger>)}
+          {CATEGORIES.map((c) => <TabsTrigger key={c} value={c}>{CATEGORY_LABELS[c]}</TabsTrigger>)}
         </TabsList>
       </Tabs>
 
@@ -94,7 +103,9 @@ const Galeria = () => {
             )}
             <div className="p-3">
               <p className="text-sm font-medium truncate">{m.title}</p>
-              <p className="text-xs text-muted-foreground capitalize">{m.category}</p>
+              <p className="text-xs text-muted-foreground capitalize">
+                {CATEGORY_LABELS[m.category as typeof CATEGORIES[number]] || m.category}
+              </p>
             </div>
           </Card>
         ))}

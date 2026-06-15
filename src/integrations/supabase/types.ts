@@ -451,7 +451,12 @@ export type Database = {
       account_status: "pending" | "approved" | "rejected"
       app_role: "admin" | "gestor" | "funcionario"
       doc_category: "rh" | "sistema" | "legislacao"
-      media_category: "instalacoes" | "treinamentos" | "projetos" | "bastidores"
+      media_category:
+        | "instalacoes"
+        | "treinamentos"
+        | "projetos"
+        | "bastidores"
+        | "operacoes"
       media_type: "image" | "video"
       onboarding_status: "rascunho" | "enviado" | "em_analise" | "concluido"
       ticket_status:
@@ -596,7 +601,13 @@ export const Constants = {
       account_status: ["pending", "approved", "rejected"],
       app_role: ["admin", "gestor", "funcionario"],
       doc_category: ["rh", "sistema", "legislacao"],
-      media_category: ["instalacoes", "treinamentos", "projetos", "bastidores"],
+      media_category: [
+        "instalacoes",
+        "treinamentos",
+        "projetos",
+        "bastidores",
+        "operacoes",
+      ],
       media_type: ["image", "video"],
       onboarding_status: ["rascunho", "enviado", "em_analise", "concluido"],
       ticket_status: [
