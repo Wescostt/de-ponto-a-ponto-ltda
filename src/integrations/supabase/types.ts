@@ -457,6 +457,7 @@ export type Database = {
         | "projetos"
         | "bastidores"
         | "operacoes"
+        | "informativos"
       media_type: "image" | "video"
       onboarding_status: "rascunho" | "enviado" | "em_analise" | "concluido"
       ticket_status:
@@ -607,6 +608,7 @@ export const Constants = {
         "projetos",
         "bastidores",
         "operacoes",
+        "informativos",
       ],
       media_type: ["image", "video"],
       onboarding_status: ["rascunho", "enviado", "em_analise", "concluido"],

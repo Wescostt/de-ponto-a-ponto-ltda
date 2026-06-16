@@ -11,7 +11,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { Upload } from "lucide-react";
 
-const CATEGORIES = ["instalacoes", "treinamentos", "projetos", "bastidores", "operacoes"] as const;
+const CATEGORIES = ["instalacoes", "treinamentos", "projetos", "bastidores", "operacoes", "informativos"] as const;
 
 const CATEGORY_LABELS: Record<typeof CATEGORIES[number], string> = {
   instalacoes: "Instalações",
@@ -19,6 +19,7 @@ const CATEGORY_LABELS: Record<typeof CATEGORIES[number], string> = {
   projetos: "Projetos",
   bastidores: "Bastidores",
   operacoes: "Operações",
+  informativos: "Informativos",
 };
 
 type MediaRow = { id: string; type: "image" | "video"; category: string; title: string | null; storage_path: string };
